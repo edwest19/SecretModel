@@ -76,10 +76,19 @@ public sealed class ReferenceTextTests
     [DataRow("ΟΔΟΣ", "οδος")]   // ΟΔΟΣ -> οδος, final sigma
     [DataRow("ΣΟΣ", "σος")]               // ΣΟΣ -> σος, first sigma not final
     [DataRow("İ", "i̇")]                                      // İ -> i + combining dot
-    [DataRow("\uD800", "\uD800")]                                       // lone surrogate unchanged
     public void KnownCases(string input, string expected)
     {
         Assert.AreEqual(expected, ReferenceText.Lower(input));
+    }
+
+    [TestMethod]
+    [TestCategory("SM-TOK-008")]
+    public void LoneSurrogates_AreLeftUnchanged_AsPythonLeavesThem()
+    {
+        // Not a [DataRow]: attribute strings are stored as UTF-8, which turns a lone surrogate into
+        // U+FFFD, so a DataRow version of this test compared U+FFFD with U+FFFD and could not fail.
+        Assert.AreEqual("\uD800", ReferenceText.Lower("\uD800"));
+        Assert.AreEqual("a\uDC00b", ReferenceText.Lower("A\uDC00B")); // Python: 'A\udc00B'.lower() == 'a\udc00b'
     }
 
     private static IEnumerable<int> AllCodePoints()

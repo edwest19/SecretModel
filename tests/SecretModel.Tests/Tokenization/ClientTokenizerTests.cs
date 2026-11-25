@@ -49,6 +49,8 @@ public sealed class ClientTokenizerTests
         // Python's str.encode() raises UnicodeEncodeError on a lone surrogate; so must we.
         var tokenizer = new ClientTokenizer(SecretA);
         Assert.ThrowsExactly<EncoderFallbackException>(() => tokenizer.TokenizeCustomer("\uD800"));
+        Assert.ThrowsExactly<EncoderFallbackException>(() => tokenizer.TokenizeMerchant("Acme \uD800"));
+        Assert.ThrowsExactly<EncoderFallbackException>(() => tokenizer.TokenizeCard("4111\uDC00"));
     }
 
     [TestMethod]
