@@ -195,10 +195,13 @@ public sealed class HiddenMarkovModelTests
     {
         var model = new HiddenMarkovModel([1, 0], new double[,] { { 1, 0 }, { 0, 1 } }, new double[,] { { 1, 0 }, { 0, 1 } });
 
+        // The impossible step must not be the last one: there, 0/0 never reaches a later step, so a
+        // missing check would still give -inf by accident. In [0, 1, 0] a NaN would carry on.
         Assert.AreEqual(double.NegativeInfinity, model.LogLikelihood([0, 1]));
-        Assert.AreEqual(double.NegativeInfinity, model.Viterbi([0, 1]).LogProbability);
+        Assert.AreEqual(double.NegativeInfinity, model.LogLikelihood([0, 1, 0]));
+        Assert.AreEqual(double.NegativeInfinity, model.Viterbi([0, 1, 0]).LogProbability);
         Assert.AreEqual(0.0, model.LogLikelihood([0, 0, 0]));
-        Assert.ThrowsExactly<InvalidOperationException>(() => model.Train([[0, 1]]));
+        Assert.ThrowsExactly<InvalidOperationException>(() => model.Train([[0, 1, 0]]));
     }
 
     [TestMethod]
