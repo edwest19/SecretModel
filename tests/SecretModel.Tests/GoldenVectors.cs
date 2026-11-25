@@ -17,6 +17,10 @@ internal static class GoldenVectors
 
     public static LowercaseFile Lowercase() => Load<LowercaseFile>("lowercase.json");
 
+    public static SplitMixFile SplitMix64() => Load<SplitMixFile>("splitmix64.json");
+
+    public static HmmFile Hmm() => Load<HmmFile>("hmm.json");
+
     private static T Load<T>(string fileName)
     {
         string path = Path.Combine(AppContext.BaseDirectory, "GoldenVectors", fileName);
@@ -45,6 +49,47 @@ internal static class GoldenVectors
     internal sealed record LowercaseVector(
         [property: JsonPropertyName("input")] string Input,
         [property: JsonPropertyName("lower")] string Lower);
+
+    internal sealed record SplitMixFile(
+        [property: JsonPropertyName("seed")] ulong Seed,
+        [property: JsonPropertyName("vectors")] IReadOnlyList<string> Vectors);
+
+    internal sealed record HmmFile(
+        [property: JsonPropertyName("fixture")] HmmParameters Fixture,
+        [property: JsonPropertyName("forward")] HmmForward Forward,
+        [property: JsonPropertyName("viterbi_fixture")] HmmViterbi ViterbiFixture,
+        [property: JsonPropertyName("baum_welch_one_iteration")] HmmBaumWelch BaumWelch,
+        [property: JsonPropertyName("viterbi_wikipedia")] HmmWikipedia ViterbiWikipedia);
+
+    internal sealed record HmmParameters(
+        [property: JsonPropertyName("pi")] double[] Pi,
+        [property: JsonPropertyName("a")] double[][] A,
+        [property: JsonPropertyName("b")] double[][] B);
+
+    internal sealed record HmmForward(
+        [property: JsonPropertyName("observations")] int[] Observations,
+        [property: JsonPropertyName("log_likelihood")] double LogLikelihood);
+
+    internal sealed record HmmViterbi(
+        [property: JsonPropertyName("observations")] int[] Observations,
+        [property: JsonPropertyName("path")] int[] Path,
+        [property: JsonPropertyName("log_probability")] double LogProbability);
+
+    internal sealed record HmmBaumWelch(
+        [property: JsonPropertyName("sequences")] int[][] Sequences,
+        [property: JsonPropertyName("log_likelihood_before")] double LogLikelihoodBefore,
+        [property: JsonPropertyName("log_likelihood_after")] double LogLikelihoodAfter,
+        [property: JsonPropertyName("pi")] double[] Pi,
+        [property: JsonPropertyName("a")] double[][] A,
+        [property: JsonPropertyName("b")] double[][] B);
+
+    internal sealed record HmmWikipedia(
+        [property: JsonPropertyName("pi")] double[] Pi,
+        [property: JsonPropertyName("a")] double[][] A,
+        [property: JsonPropertyName("b")] double[][] B,
+        [property: JsonPropertyName("observations")] int[] Observations,
+        [property: JsonPropertyName("path")] int[] Path,
+        [property: JsonPropertyName("probability")] double Probability);
 
     internal sealed record SymbolVector(
         [property: JsonPropertyName("amount_bin")] int AmountBin,

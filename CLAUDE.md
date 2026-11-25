@@ -50,8 +50,10 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 - A test is not counted until it has been seen failing with the behavior deliberately broken.
   Record how it was broken in the pull request.
 - Never weaken, skip or delete a test to make it pass. Never change a known-answer test's expected
-  values. Golden vectors come from `reference/python` or from published sources and are cited in
-  the test file.
+  values. Golden vectors come from `reference/python`, from published sources, or from an
+  independent exhaustive computation in exact arithmetic (`tools/golden`), and are cited in the
+  test file. Never from the C# being tested.
+- Locked file formats live in `docs/formats/`, each with a byte-for-byte known-answer test.
 - Report where each test ran: Claude's cloud Linux workspace, CI, or Edwin's PC.
 
 ## Never commit
