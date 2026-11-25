@@ -1,0 +1,177 @@
+{
+ "baum_welch_one_iteration": {
+  "a": [
+   [
+    0.4142009415022602,
+    0.31406960920389304,
+    0.27172944929384674
+   ],
+   [
+    0.16963925100897104,
+    0.4764335507586187,
+    0.35392719823241026
+   ],
+   [
+    0.3791283129715802,
+    0.0973782799077513,
+    0.5234934071206685
+   ]
+  ],
+  "b": [
+   [
+    0.42986156343547993,
+    0.4137782566305709,
+    0.1563601799339492
+   ],
+   [
+    0.1476959382976228,
+    0.12143609932782551,
+    0.7308679623745516
+   ],
+   [
+    0.21312455369922761,
+    0.5218418595059748,
+    0.26503358679479755
+   ]
+  ],
+  "log_likelihood_after": -11.900286293300226,
+  "log_likelihood_before": -12.27292453494222,
+  "pi": [
+   0.4650947813160889,
+   0.30559320254679306,
+   0.22931201613711807
+  ],
+  "sequences": [
+   [
+    0,
+    2,
+    1,
+    1,
+    0,
+    2
+   ],
+   [
+    2,
+    2,
+    0,
+    1
+   ],
+   [
+    1
+   ]
+  ]
+ },
+ "description": "HMM known answers (README SM-HMM-001, SM-HMM-003, Baum-Welch update) from tools/golden/generate_hmm_vectors.py: exhaustive path enumeration in exact fractions, not a forward-backward or Viterbi implementation.",
+ "fixture": {
+  "a": [
+   [
+    0.5,
+    0.25,
+    0.25
+   ],
+   [
+    0.125,
+    0.625,
+    0.25
+   ],
+   [
+    0.375,
+    0.125,
+    0.5
+   ]
+  ],
+  "b": [
+   [
+    0.5,
+    0.375,
+    0.125
+   ],
+   [
+    0.125,
+    0.125,
+    0.75
+   ],
+   [
+    0.25,
+    0.5,
+    0.25
+   ]
+  ],
+  "pi": [
+   0.5,
+   0.25,
+   0.25
+  ]
+ },
+ "forward": {
+  "log_likelihood": -6.69154671384114,
+  "observations": [
+   0,
+   2,
+   1,
+   1,
+   0,
+   2
+  ],
+  "probability": "2665803/2147483648"
+ },
+ "viterbi_fixture": {
+  "log_probability": -9.873959564634632,
+  "observations": [
+   0,
+   2,
+   1,
+   1,
+   0,
+   2
+  ],
+  "path": [
+   0,
+   1,
+   2,
+   2,
+   0,
+   1
+  ]
+ },
+ "viterbi_wikipedia": {
+  "a": [
+   [
+    0.7,
+    0.3
+   ],
+   [
+    0.4,
+    0.6
+   ]
+  ],
+  "b": [
+   [
+    0.5,
+    0.4,
+    0.1
+   ],
+   [
+    0.1,
+    0.3,
+    0.6
+   ]
+  ],
+  "observations": [
+   0,
+   1,
+   2
+  ],
+  "path": [
+   0,
+   0,
+   1
+  ],
+  "pi": [
+   0.6,
+   0.4
+  ],
+  "probability": 0.01512,
+  "source": "https://en.wikipedia.org/wiki/Viterbi_algorithm (worked example: Healthy/Fever; normal, cold, dizzy). Published answer: path Healthy, Healthy, Fever with probability 0.01512, confirmed here by enumerating all 8 paths."
+ }
+}

@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.4 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.5 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -11,8 +11,8 @@ over HTTPS with mutual TLS.
 West decides what it does and approves every merge. It is for demonstration, testing and comparison,
 not production, and it never handles real card or cardholder data.
 
-**Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), and
-token validation and the identifier check (SM-PRIV-001, -002, -006). A
+**Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
+validation and the identifier check (SM-PRIV-001, -002, -006), and the HMM core (§6). A
 requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
@@ -37,14 +37,15 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 | `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, storage adapters. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
-| `tools/golden` | Runs the Python reference to produce the tests' golden vectors. |
+| `docs/formats` | Locked file formats, each with a known-answer test. |
+| `tools/golden` | Produces the tests' golden vectors: by running the Python reference, or by exhaustive exact computation. |
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 
 ---
 
 # Requirements Specification
 
-**Version:** 0.4
+**Version:** 0.5
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -185,13 +186,24 @@ How a transaction amount becomes an `amount_bin` is not specified yet (OPEN-7).
 | ID | Requirement |
 |---|---|
 | SM-HMM-001 | The forward algorithm MUST use per-timestep scaling. Log-likelihood MUST match a hand-computed value for a 3-state / 3-symbol fixture to within 1e-9. |
-| SM-HMM-002 | Baum-Welch log-likelihood MUST be monotonically non-decreasing across iterations on a fixed training set. A decrease indicates an implementation error and MUST fail the build. |
+| SM-HMM-002 | Baum-Welch log-likelihood MUST be monotonically non-decreasing across iterations on a fixed training set, allowing for rounding of at most 1e-9 × \|log-likelihood\| per iteration. A decrease beyond that indicates an implementation error and MUST fail the build. |
 | SM-HMM-003 | Viterbi MUST return the known-optimal state path for a published textbook fixture. |
-| SM-HMM-004 | Training MUST be deterministic given a fixed seed: two runs produce bit-identical parameters. |
-| SM-HMM-005 | Serialize → deserialize MUST preserve A, B, Pi exactly (bitwise for IEEE-754 doubles). |
+| SM-HMM-004 | Training MUST be deterministic given a fixed seed: two runs produce bit-identical parameters. Seeds go through SplitMix64, checked against its published reference outputs, not `System.Random`, whose seeded sequence .NET does not promise to keep. |
+| SM-HMM-005 | Serialize → deserialize MUST preserve A, B, Pi exactly (bitwise for IEEE-754 doubles). The file format is locked in `docs/formats/hmm-model-v1.md`. |
 | SM-HMM-006 | After every training iteration, rows of A, rows of B, and Pi MUST each sum to 1.0 within 1e-9. |
 | SM-HMM-007 | A 10,000-symbol sequence MUST score without underflow, overflow, NaN, or infinity. |
 | SM-HMM-008 | `n_states = 5`, `n_symbols = 512` by default, both configurable. |
+| SM-HMM-009 | One Baum-Welch update MUST match, within 1e-12, the update computed exactly by enumerating every hidden-state path, over several sequences including a one-symbol sequence. *(The prototype skipped sequences shorter than 2.)* |
+| SM-HMM-010 | Invalid input MUST be rejected: empty sequences, symbols outside 0 to `n_symbols − 1`, and parameter rows that are negative, not finite, or don't sum to 1 within 1e-9. A sequence the model can't produce MUST score −∞, never NaN, and can't be trained on. |
+| SM-HMM-011 | The model file MUST follow `docs/formats/hmm-model-v1.md`: the writer produces the documented example byte for byte, and the reader rejects anything that deviates from the format. |
+
+Training is plain maximum-likelihood Baum-Welch, which is what guarantees SM-HMM-002. A state that
+expects no visits keeps its previous rows instead of dividing by zero. Smoothing (OPEN-2) is decided
+in the scoring work, with its own requirement and test.
+
+Known answers for SM-HMM-001, -003 and -009 come from `tools/golden/generate_hmm_vectors.py`, which
+enumerates every state path in exact fractions instead of running a forward-backward or Viterbi
+algorithm, and from the worked example in Wikipedia's "Viterbi algorithm" article.
 
 ### 6.1 Sparsity (OPEN-2)
 
@@ -326,6 +338,13 @@ Storage.
 ---
 
 ## 15. Revision history
+
+**v0.5 (2026-11-25)**
+- SM-HMM-002 states its rounding tolerance; SM-HMM-004 names SplitMix64; SM-HMM-005 points to the
+  locked format.
+- Added SM-HMM-009 (exact Baum-Welch update), SM-HMM-010 (input validation, −∞ not NaN) and
+  SM-HMM-011 (model file format v1, `docs/formats/hmm-model-v1.md`).
+- Training is maximum-likelihood; smoothing stays with OPEN-2.
 
 **v0.4 (2026-11-25)**
 - SM-PRIV-001: the whole value must match; no trailing newline.
