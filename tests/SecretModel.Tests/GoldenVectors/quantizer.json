@@ -1,0 +1,4369 @@
+{
+ "description": "Symbols produced by reference/python/client/quantizer.py (README SM-QNT-006). Only quantize_to_bin is replaced, so amount_bin can be chosen directly.",
+ "generator": "tools/golden/generate_golden_vectors.py",
+ "reference_sha256": {
+  "client/quantizer.py": "a625a89a8dd725c5b405445be5361bf2d7460f0ffa9ed4eb31b4e9bf71ec60f5"
+ },
+ "vectors": [
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 0
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 1
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 2
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 3
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 4
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 5
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 6
+  },
+  {
+   "amount_bin": 0,
+   "category": "grocery",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 7
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 8
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 9
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 10
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 11
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 12
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 13
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 14
+  },
+  {
+   "amount_bin": 0,
+   "category": "gas",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 15
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 16
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 17
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 18
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 19
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 20
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 21
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 22
+  },
+  {
+   "amount_bin": 0,
+   "category": "restaurant",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 23
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 24
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 25
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 26
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 27
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 28
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 29
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 30
+  },
+  {
+   "amount_bin": 0,
+   "category": "retail",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 31
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 32
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 33
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 34
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 35
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 36
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 37
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 38
+  },
+  {
+   "amount_bin": 0,
+   "category": "travel",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 39
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 40
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 41
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 42
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 43
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 44
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 45
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 46
+  },
+  {
+   "amount_bin": 0,
+   "category": "online_market",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 47
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 48
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 49
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 50
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 51
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 52
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 53
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 54
+  },
+  {
+   "amount_bin": 0,
+   "category": "atm",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 55
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 56
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 57
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 58
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 59
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 60
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 61
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 62
+  },
+  {
+   "amount_bin": 0,
+   "category": "other",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 63
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 64
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 65
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 66
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 67
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 68
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 69
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 70
+  },
+  {
+   "amount_bin": 1,
+   "category": "grocery",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 71
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 72
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 73
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 74
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 75
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 76
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 77
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 78
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 79
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 80
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 81
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 82
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 83
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 84
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 85
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 86
+  },
+  {
+   "amount_bin": 1,
+   "category": "restaurant",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 87
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 88
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 89
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 90
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 91
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 92
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 93
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 94
+  },
+  {
+   "amount_bin": 1,
+   "category": "retail",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 95
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 96
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 97
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 98
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 99
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 100
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 101
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 102
+  },
+  {
+   "amount_bin": 1,
+   "category": "travel",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 103
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 104
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 105
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 106
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 107
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 108
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 109
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 110
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_market",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 111
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 112
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 113
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 114
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 115
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 116
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 117
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 118
+  },
+  {
+   "amount_bin": 1,
+   "category": "atm",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 119
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 120
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 121
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 122
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 123
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 124
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 125
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 126
+  },
+  {
+   "amount_bin": 1,
+   "category": "other",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 127
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 128
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 129
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 130
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 131
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 132
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 133
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 134
+  },
+  {
+   "amount_bin": 2,
+   "category": "grocery",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 135
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 136
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 137
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 138
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 139
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 140
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 141
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 142
+  },
+  {
+   "amount_bin": 2,
+   "category": "gas",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 143
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 144
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 145
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 146
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 147
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 148
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 149
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 150
+  },
+  {
+   "amount_bin": 2,
+   "category": "restaurant",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 151
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 152
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 153
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 154
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 155
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 156
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 157
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 158
+  },
+  {
+   "amount_bin": 2,
+   "category": "retail",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 159
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 160
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 161
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 162
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 163
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 164
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 165
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 166
+  },
+  {
+   "amount_bin": 2,
+   "category": "travel",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 167
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 168
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 169
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 170
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 171
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 172
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 173
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 174
+  },
+  {
+   "amount_bin": 2,
+   "category": "online_market",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 175
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 176
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 177
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 178
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 179
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 180
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 181
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 182
+  },
+  {
+   "amount_bin": 2,
+   "category": "atm",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 183
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 184
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 185
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 186
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 187
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 188
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 189
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 190
+  },
+  {
+   "amount_bin": 2,
+   "category": "other",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 191
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 192
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 193
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 194
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 195
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 196
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 197
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 198
+  },
+  {
+   "amount_bin": 3,
+   "category": "grocery",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 199
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 200
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 201
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 202
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 203
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 204
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 205
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 206
+  },
+  {
+   "amount_bin": 3,
+   "category": "gas",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 207
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 208
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 209
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 210
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 211
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 212
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 213
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 214
+  },
+  {
+   "amount_bin": 3,
+   "category": "restaurant",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 215
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 217
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 219
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 221
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 223
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 224
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 225
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 226
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 227
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 228
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 229
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 230
+  },
+  {
+   "amount_bin": 3,
+   "category": "travel",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 231
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 232
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 233
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 234
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 235
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 236
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 237
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 238
+  },
+  {
+   "amount_bin": 3,
+   "category": "online_market",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 239
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 240
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 241
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 242
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 243
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 244
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 245
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 246
+  },
+  {
+   "amount_bin": 3,
+   "category": "atm",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 247
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 248
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 249
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 250
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 251
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 252
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 253
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 254
+  },
+  {
+   "amount_bin": 3,
+   "category": "other",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 255
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 256
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 257
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 258
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 259
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 260
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 261
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 262
+  },
+  {
+   "amount_bin": 4,
+   "category": "grocery",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 263
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 264
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 265
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 266
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 267
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 268
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 269
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 270
+  },
+  {
+   "amount_bin": 4,
+   "category": "gas",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 271
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 272
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 273
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 274
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 275
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 276
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 277
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 278
+  },
+  {
+   "amount_bin": 4,
+   "category": "restaurant",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 279
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 280
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 281
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 282
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 283
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 284
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 285
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 286
+  },
+  {
+   "amount_bin": 4,
+   "category": "retail",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 287
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 288
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 289
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 290
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 291
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 292
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 293
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 294
+  },
+  {
+   "amount_bin": 4,
+   "category": "travel",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 295
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 296
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 297
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 298
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 299
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 300
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 301
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 302
+  },
+  {
+   "amount_bin": 4,
+   "category": "online_market",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 303
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 304
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 305
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 306
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 307
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 308
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 309
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 310
+  },
+  {
+   "amount_bin": 4,
+   "category": "atm",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 311
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 312
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 313
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 314
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 315
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 316
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 317
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 318
+  },
+  {
+   "amount_bin": 4,
+   "category": "other",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 319
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 320
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 321
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 322
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 323
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 324
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 325
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 326
+  },
+  {
+   "amount_bin": 5,
+   "category": "grocery",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 327
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 328
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 329
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 330
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 331
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 332
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 333
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 334
+  },
+  {
+   "amount_bin": 5,
+   "category": "gas",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 335
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 336
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 337
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 338
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 339
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 340
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 341
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 342
+  },
+  {
+   "amount_bin": 5,
+   "category": "restaurant",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 343
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 344
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 345
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 346
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 347
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 348
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 349
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 350
+  },
+  {
+   "amount_bin": 5,
+   "category": "retail",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 351
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 352
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 353
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 354
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 355
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 356
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 357
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 358
+  },
+  {
+   "amount_bin": 5,
+   "category": "travel",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 359
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 360
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 361
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 362
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 363
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 364
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 365
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 366
+  },
+  {
+   "amount_bin": 5,
+   "category": "online_market",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 367
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 368
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 369
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 370
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 371
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 372
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 373
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 374
+  },
+  {
+   "amount_bin": 5,
+   "category": "atm",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 375
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 376
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 377
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 378
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 379
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 380
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 381
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 382
+  },
+  {
+   "amount_bin": 5,
+   "category": "other",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 383
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 384
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 385
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 386
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 387
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 388
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 389
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 390
+  },
+  {
+   "amount_bin": 6,
+   "category": "grocery",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 391
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 392
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 393
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 394
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 395
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 396
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 397
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 398
+  },
+  {
+   "amount_bin": 6,
+   "category": "gas",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 399
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 400
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 401
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 402
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 403
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 404
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 405
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 406
+  },
+  {
+   "amount_bin": 6,
+   "category": "restaurant",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 407
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 408
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 409
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 410
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 411
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 412
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 413
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 414
+  },
+  {
+   "amount_bin": 6,
+   "category": "retail",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 415
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 416
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 417
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 418
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 419
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 420
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 421
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 422
+  },
+  {
+   "amount_bin": 6,
+   "category": "travel",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 423
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 424
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 425
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 426
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 427
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 428
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 429
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 430
+  },
+  {
+   "amount_bin": 6,
+   "category": "online_market",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 431
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 432
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 433
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 434
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 435
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 436
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 437
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 438
+  },
+  {
+   "amount_bin": 6,
+   "category": "atm",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 439
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 440
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 441
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 442
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 443
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 444
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 445
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 446
+  },
+  {
+   "amount_bin": 6,
+   "category": "other",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 447
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 448
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 449
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 450
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 451
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 452
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 453
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 454
+  },
+  {
+   "amount_bin": 7,
+   "category": "grocery",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 455
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 456
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 457
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 458
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 459
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 460
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 461
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 462
+  },
+  {
+   "amount_bin": 7,
+   "category": "gas",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 463
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 3,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 464
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 4,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 465
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 9,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 466
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 10,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 467
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 15,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 468
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 16,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 469
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 21,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 470
+  },
+  {
+   "amount_bin": 7,
+   "category": "restaurant",
+   "hour": 22,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 471
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 4,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 472
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 5,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 473
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 10,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 474
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 11,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 475
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 16,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 476
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 17,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 477
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 22,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 478
+  },
+  {
+   "amount_bin": 7,
+   "category": "retail",
+   "hour": 23,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 479
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 5,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 480
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 0,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 481
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 11,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 482
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 6,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 483
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 17,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 484
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 12,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 485
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 23,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 486
+  },
+  {
+   "amount_bin": 7,
+   "category": "travel",
+   "hour": 18,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 487
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 0,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 488
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 1,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 489
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 6,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 490
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 7,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 491
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 12,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 492
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 13,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 493
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 18,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 494
+  },
+  {
+   "amount_bin": 7,
+   "category": "online_market",
+   "hour": 19,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 495
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 1,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 496
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 2,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 497
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 7,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 498
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 8,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 499
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 13,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 500
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 14,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 501
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 19,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 502
+  },
+  {
+   "amount_bin": 7,
+   "category": "atm",
+   "hour": 20,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 503
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 2,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 504
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 3,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 505
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 8,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 506
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 9,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 507
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 14,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 508
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 15,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 509
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 20,
+   "is_online": false,
+   "set": "all_512",
+   "symbol": 510
+  },
+  {
+   "amount_bin": 7,
+   "category": "other",
+   "hour": 21,
+   "is_online": true,
+   "set": "all_512",
+   "symbol": 511
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 0,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 1,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 2,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 3,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 4,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 5,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 216
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 6,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 7,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 8,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 9,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 10,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 11,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 218
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 12,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 13,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 14,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 15,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 16,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 17,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 220
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 18,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 19,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 20,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 21,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 22,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 3,
+   "category": "retail",
+   "hour": 23,
+   "is_online": false,
+   "set": "hours",
+   "symbol": 222
+  },
+  {
+   "amount_bin": 1,
+   "category": "Grocery",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 67
+  },
+  {
+   "amount_bin": 1,
+   "category": "GROCERY",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 67
+  },
+  {
+   "amount_bin": 1,
+   "category": "ATM",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 115
+  },
+  {
+   "amount_bin": 1,
+   "category": "Online_Market",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 107
+  },
+  {
+   "amount_bin": 1,
+   "category": "casino",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 123
+  },
+  {
+   "amount_bin": 1,
+   "category": "gas station",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 123
+  },
+  {
+   "amount_bin": 1,
+   "category": " grocery",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 123
+  },
+  {
+   "amount_bin": 1,
+   "category": "",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 123
+  },
+  {
+   "amount_bin": 1,
+   "category": "online_mar\u212aet",
+   "hour": 9,
+   "is_online": true,
+   "set": "categories",
+   "symbol": 107
+  }
+ ]
+}
