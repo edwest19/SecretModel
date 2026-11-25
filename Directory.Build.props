@@ -1,0 +1,13 @@
+<!-- Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated. -->
+<!-- Settings shared by every project in the repository. -->
+<Project>
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>Edwin West; Claude (Anthropic)</Authors>
+    <Product>SecretModel</Product>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>
