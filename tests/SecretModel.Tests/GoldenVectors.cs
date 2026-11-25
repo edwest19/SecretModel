@@ -15,6 +15,8 @@ internal static class GoldenVectors
 
     public static QuantizerFile Quantizer() => Load<QuantizerFile>("quantizer.json");
 
+    public static LowercaseFile Lowercase() => Load<LowercaseFile>("lowercase.json");
+
     private static T Load<T>(string fileName)
     {
         string path = Path.Combine(AppContext.BaseDirectory, "GoldenVectors", fileName);
@@ -33,6 +35,16 @@ internal static class GoldenVectors
 
     internal sealed record QuantizerFile(
         [property: JsonPropertyName("vectors")] IReadOnlyList<SymbolVector> Vectors);
+
+    internal sealed record LowercaseFile(
+        [property: JsonPropertyName("unicode_version")] string UnicodeVersion,
+        [property: JsonPropertyName("single_code_point_sha256")] string SingleCodePointSha256,
+        [property: JsonPropertyName("sigma_context_sha256")] string SigmaContextSha256,
+        [property: JsonPropertyName("vectors")] IReadOnlyList<LowercaseVector> Vectors);
+
+    internal sealed record LowercaseVector(
+        [property: JsonPropertyName("input")] string Input,
+        [property: JsonPropertyName("lower")] string Lower);
 
     internal sealed record SymbolVector(
         [property: JsonPropertyName("amount_bin")] int AmountBin,

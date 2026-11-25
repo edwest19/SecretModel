@@ -129,6 +129,63 @@ def quantizer_vectors():
     }
 
 
+def hex_of(s):
+    return " ".join("%X" % ord(ch) for ch in s)
+
+
+def lowercase_vectors():
+    # README SM-TOK-008: the C# must lowercase exactly like Python's str.lower(). Rather than commit
+    # Python's output for all 1,112,064 code points, commit the SHA-256 of that output in a fixed
+    # line format; the C# test builds the same lines from its own Lower() and compares hashes.
+    import random
+    import unicodedata
+
+    cps = [cp for cp in range(0x110000) if not 0xD800 <= cp <= 0xDFFF]
+    sigma = "Σ"
+
+    single = "".join("%X %s\n" % (cp, hex_of(chr(cp).lower())) for cp in cps)
+    context = "".join(
+        "%X %s|%s|%s|%s\n" % (
+            cp,
+            hex_of((chr(cp) + sigma).lower()),
+            hex_of(("A" + chr(cp) + sigma).lower()),
+            hex_of(("A" + sigma + chr(cp)).lower()),
+            hex_of(("A" + sigma + chr(cp) + "b").lower()),
+        )
+        for cp in cps)
+
+    # Random strings built from characters that exercise the rules together: sigmas in every
+    # position, cased and case-ignorable characters, multi-character results, and non-BMP text.
+    alphabet = (list("AbZz .'-:9") + [
+        "Σ", "σ", "ς", "Α", "α",      # sigmas, Greek alpha
+        "İ", "ı", "K", "Å",                # dotted I, dotless i, Kelvin, Angstrom
+        "́", "ͅ", "­", "‍", "ʰ",      # combining marks, format, modifier
+        "Ⓐ", "ⓐ", "Ⅷ", "ª", "ǅ",      # circled letters, Roman numeral, ordinal, titlecase
+        "’", "·", "Ꭰ", "ꭰ",                # right quote, middle dot, Cherokee
+        "\U00010400", "\U00010428", "\U0001f6d2",              # Deseret capital/small, emoji
+    ])
+    rng = random.Random(20261125)
+    strings = []
+    for _ in range(400):
+        s = "".join(rng.choice(alphabet) for _ in range(rng.randint(0, 12)))
+        strings.append({"input": s, "lower": s.lower()})
+
+    return {
+        "description": "Python str.lower() behavior (README SM-TOK-008). single_code_point_sha256 is "
+                       "SHA-256 over ASCII lines '<cp hex> <lowered code points, hex, space-separated>\\n' "
+                       "for every code point 0-10FFFF except surrogates, uppercase hex, ascending. "
+                       "sigma_context_sha256 uses lines '<cp hex> <P1>|<P2>|<P3>|<P4>\\n' where P1..P4 "
+                       "are the lowered code points of c+S, A+c+S, A+S+c and A+S+c+b, S = U+03A3.",
+        "generator": "tools/golden/generate_golden_vectors.py",
+        "python_version": sys.version.split()[0],
+        "unicode_version": unicodedata.unidata_version,
+        "single_code_point_sha256": hashlib.sha256(single.encode("ascii")).hexdigest(),
+        "sigma_context_sha256": hashlib.sha256(context.encode("ascii")).hexdigest(),
+        "vectors": strings,
+    }
+
+
 if __name__ == "__main__":
     write("tokenizer.json", tokenizer_vectors())
     write("quantizer.json", quantizer_vectors())
+    write("lowercase.json", lowercase_vectors())
