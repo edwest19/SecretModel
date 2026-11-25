@@ -1,0 +1,130 @@
+{
+ "description": "Tokens produced by reference/python/client/tokenizer.py (README SM-TOK-007).",
+ "generator": "tools/golden/generate_golden_vectors.py",
+ "reference_sha256": {
+  "client/tokenizer.py": "75d99d2a9922f312a01277f29ac1c0512623df92cb216d620bab229874c77d5b"
+ },
+ "secret_hex": "5365637265744d6f64656c20676f6c64656e2d766563746f722074657374207365637265742e204e6f742061207265616c206b65792e",
+ "vectors": [
+  {
+   "input": "4111111111111111",
+   "method": "card",
+   "token": "tok_card_c7be35ab7b91ecc0c23c43f4"
+  },
+  {
+   "input": "4111 1111 1111 1111",
+   "method": "card",
+   "token": "tok_card_c7be35ab7b91ecc0c23c43f4"
+  },
+  {
+   "input": "4111-1111-1111-1111",
+   "method": "card",
+   "token": "tok_card_c7be35ab7b91ecc0c23c43f4"
+  },
+  {
+   "input": "4111 - 1111-1111 1111",
+   "method": "card",
+   "token": "tok_card_c7be35ab7b91ecc0c23c43f4"
+  },
+  {
+   "input": "5555555555554444",
+   "method": "card",
+   "token": "tok_card_315316cb0aaeb355bd19c42b"
+  },
+  {
+   "input": "378282246310005",
+   "method": "card",
+   "token": "tok_card_098d940ae9ccf6ea5faa6f64"
+  },
+  {
+   "input": "6011111111111117",
+   "method": "card",
+   "token": "tok_card_399e41a23cc9ff2ba0f187a8"
+  },
+  {
+   "input": "",
+   "method": "card",
+   "token": "tok_card_a59d2ba322026baa277733fb"
+  },
+  {
+   "input": "cust-0001",
+   "method": "customer",
+   "token": "tok_cus_746c9f6aaa1b536c74a1496c"
+  },
+  {
+   "input": "CUST-0001",
+   "method": "customer",
+   "token": "tok_cus_ac5c74be628e6aaa7c546185"
+  },
+  {
+   "input": "cust 0001",
+   "method": "customer",
+   "token": "tok_cus_b07cc9331e58a3dfed35da5a"
+  },
+  {
+   "input": " cust-0001",
+   "method": "customer",
+   "token": "tok_cus_fe7b6ed28f5fef1036e486ea"
+  },
+  {
+   "input": "",
+   "method": "customer",
+   "token": "tok_cus_e2760f6bb11ae6b4b6ef5da6"
+  },
+  {
+   "input": "Acme Grocery",
+   "method": "merchant",
+   "token": "tok_merch_25a28913d7034fe8d05437b5"
+  },
+  {
+   "input": "ACME GROCERY",
+   "method": "merchant",
+   "token": "tok_merch_25a28913d7034fe8d05437b5"
+  },
+  {
+   "input": "acme grocery",
+   "method": "merchant",
+   "token": "tok_merch_25a28913d7034fe8d05437b5"
+  },
+  {
+   "input": "Caf\u00e9 \u00dcn\u00efcode",
+   "method": "merchant",
+   "token": "tok_merch_ac9041b1a5b29de30ded77a4"
+  },
+  {
+   "input": "\u039f\u0394\u039f\u03a3",
+   "method": "merchant",
+   "token": "tok_merch_1f3d52dbb5ed26bbc67f048c"
+  },
+  {
+   "input": "\u0130stanbul Bazaar",
+   "method": "merchant",
+   "token": "tok_merch_59fc46431dac10be603876d5"
+  },
+  {
+   "input": "Stra\u00dfe",
+   "method": "merchant",
+   "token": "tok_merch_474d256664840438b623a81d"
+  },
+  {
+   "input": "\u1e9e",
+   "method": "merchant",
+   "token": "tok_merch_bcd3c2867b6efbe34e05c628"
+  },
+  {
+   "input": "\u212aelvin Hardware",
+   "method": "merchant",
+   "token": "tok_merch_e0407138d2fc089c6c708f96"
+  },
+  {
+   "input": "\ud83d\uded2 Mart",
+   "method": "merchant",
+   "token": "tok_merch_e51548cf379bbe85442c71b7"
+  },
+  {
+   "input": "",
+   "method": "merchant",
+   "token": "tok_merch_14725510edf70149f549f17a"
+  }
+ ]
+}

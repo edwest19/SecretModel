@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 and v0.3 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -11,8 +11,8 @@ over HTTPS with mutual TLS.
 West decides what it does and approves every merge. It is for demonstration, testing and comparison,
 not production, and it never handles real card or cardholder data.
 
-**Status:** specification only. Nothing below is implemented yet. A requirement counts as met only
-when its test has been seen passing *and* seen failing (§12).
+**Status:** in progress. Implemented so far: the client tokenizer (§4) and the quantizer (§5). A
+requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -36,12 +36,14 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 | `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, storage adapters. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
+| `tools/golden` | Runs the Python reference to produce the tests' golden vectors. |
+| `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 
 ---
 
 # Requirements Specification
 
-**Version:** 0.2
+**Version:** 0.3
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -154,6 +156,11 @@ Runs client-side. The vault secret never leaves the client.
 | SM-TOK-005 | A vault secret shorter than 32 bytes MUST be rejected at construction. |
 | SM-TOK-006 | PANs MUST be normalized (spaces and hyphens removed) before HMAC, so `4111 1111 1111 1111` and `4111-1111-1111-1111` produce the same token. |
 | SM-TOK-007 | The C# tokenizer MUST produce byte-identical tokens to the Python reference in `reference/python` for a shared golden-vector file. |
+| SM-TOK-008 | Merchant names (and category names, §5) MUST be lowercased exactly as Python 3.13's `str.lower()` does (Unicode 15.1), on every operating system. The C# uses data measured from Python (`tools/unicode/generate_python_lowercase.py`), not the OS's Unicode tables. Verified against Python's output for every code point, for the context-dependent final-sigma rule next to every code point, and for 400 random mixed strings. |
+
+As in the reference, only card values are stripped of spaces and hyphens, only merchant names are
+lowercased, and customer IDs are used exactly as given. The reference has no `txn` tokenizer
+method, so none exists yet; one will be added, with its own requirement, when a task needs it.
 
 ---
 
@@ -163,10 +170,12 @@ Runs client-side. The vault secret never leaves the client.
 |---|---|
 | SM-QNT-001 | `symbol = ((amount_bin * 8 + mcc_group) * 4 + time_bucket) * 2 + is_online`. |
 | SM-QNT-002 | The mapping MUST be a bijection onto exactly 0–511 with zero collisions. *(Verified to hold in the Python reference.)* |
-| SM-QNT-003 | Time buckets: hour ∈ [0,6) → 0, [6,12) → 1, [12,18) → 2, [18,24) → 3. |
+| SM-QNT-003 | Time buckets: hour ∈ [0,6) → 0, [6,12) → 1, [12,18) → 2, [18,24) → 3. Hours outside 0–23 MUST be rejected. *(The prototype accepted any hour: −1 became bucket 0 and 25 or 99 became bucket 3.)* |
 | SM-QNT-004 | An unrecognized merchant category MUST map to group 7 (`other`), never throw. |
 | SM-QNT-005 | `amount_bin` MUST be 0–7 inclusive; out-of-range input is rejected, not clamped silently. |
 | SM-QNT-006 | The C# quantizer MUST produce identical symbols to the Python reference across a shared golden-vector file covering all 512 combinations. |
+
+How a transaction amount becomes an `amount_bin` is not specified yet (OPEN-7).
 
 ---
 
@@ -294,6 +303,7 @@ Storage.
 | OPEN-4 | Repository | project setup | **Resolved 2026-11-25:** new repo `edwest19/SecretModel` |
 | OPEN-5 | Does the App Service front end overwrite a client-supplied `X-ARR-ClientCert`? Not verified. SM-AUTH-011 tests it against a deployed instance. | Azure deployment | Open |
 | OPEN-6 | License for distribution on GitHub | public release | Open: Edwin's decision |
+| OPEN-7 | How the client turns an amount into `amount_bin`. The prototype uses KMeans on log amounts, whose bin numbers are not ordered by size, and its fallback for fewer than 8 amounts was measured to put the largest amount (and anything above it) in bin 0, the same bin as the smallest. | client tooling, §11 harness | Open |
 
 ---
 
@@ -309,10 +319,20 @@ Storage.
 | No journal ingestion existed | §8 |
 | No PowerShell harness existed | §11 |
 | 2,560 emission parameters per card from a few hundred observations | OPEN-2 |
+| Any hour accepted (−1 → bucket 0, 25 → bucket 3) | SM-QNT-003 |
+| Fallback amount binning puts the largest amount in bin 0 | OPEN-7 |
 
 ---
 
 ## 15. Revision history
+
+**v0.3 (2026-11-25)**
+- Added SM-TOK-008: lowercase exactly as Python 3.13's `str.lower()`, from data measured from
+  Python. .NET's own lowercasing differs from Python for the final sigma and for `İ`, so two golden
+  merchant tokens failed; Edwin chose an exact match over ASCII-only lowercasing.
+- SM-QNT-003 now rejects hours outside 0–23.
+- Noted in §4 that only card values are normalized and that there is no `txn` tokenizer yet.
+- Added OPEN-7 (amount → `amount_bin`), with the measured fallback-binning defect.
 
 **v0.2 (2026-11-25)**
 - Spec moved into README.md, which is now the specification.
