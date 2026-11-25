@@ -1,0 +1,48 @@
+# Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated.
+#
+# Builds and tests the solution on Linux and Windows for every pull request and every push to main.
+# Any failing test or compiler warning fails the run (README SM-VER-004; warnings are errors in
+# Directory.Build.props). Actions are pinned to full commit SHAs; the comment names the release.
+
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET (version from global.json)
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Show .NET SDK version
+        run: dotnet --version
+
+      - name: Build
+        run: dotnet build SecretModel.slnx -c Release
+
+      - name: Test
+        run: dotnet test SecretModel.slnx -c Release --no-build
