@@ -25,6 +25,9 @@ Requires the .NET 10 SDK.
 dotnet build SecretModel.slnx -c Release
 ```
 
+CI (`.github/workflows/build.yml`) builds and tests every pull request and every push to `main` on
+ubuntu-latest and windows-latest. A failing test or a compiler warning fails the run.
+
 ## Repository layout
 
 | Path | What it holds |
