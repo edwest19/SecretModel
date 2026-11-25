@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 and v0.3 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.4 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -11,7 +11,8 @@ over HTTPS with mutual TLS.
 West decides what it does and approves every merge. It is for demonstration, testing and comparison,
 not production, and it never handles real card or cardholder data.
 
-**Status:** in progress. Implemented so far: the client tokenizer (§4) and the quantizer (§5). A
+**Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), and
+token validation and the identifier check (SM-PRIV-001, -002, -006). A
 requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
@@ -43,7 +44,7 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 
 # Requirements Specification
 
-**Version:** 0.3
+**Version:** 0.4
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -107,8 +108,8 @@ enabled for both `journal/` and `models/`. Its SFTP endpoint bills hourly while 
 
 | ID | Requirement |
 |---|---|
-| SM-PRIV-001 | The server MUST reject any token that does not match `^tok_(cus\|card\|txn\|merch)_[0-9a-f]{24}$`. Prefix-only checking is insufficient. |
-| SM-PRIV-002 | The server MUST reject any token whose body, after removing spaces, hyphens and underscores, is 13–19 digits. **This closes the `tok_4111111111111111` bypass confirmed in the prototype.** |
+| SM-PRIV-001 | The server MUST reject any token that does not match `^tok_(cus\|card\|txn\|merch)_[0-9a-f]{24}$` as a whole value. A trailing newline is not allowed (in .NET, `$` would allow one, so the code uses `\z`). Prefix-only checking is insufficient. |
+| SM-PRIV-002 | A value that fails SM-PRIV-001 MUST be treated as possibly carrying a card number when, ignoring every character that is not a letter or digit, it contains 13 or more consecutive decimal digits in any script. It is rejected like any malformed token and handled as personal data (SM-PRIV-004, SM-PRIV-005, SM-JRNL-005). **This closes the `tok_4111111111111111` bypass confirmed in the prototype**, and also catches `tok_card_4111…`, dots, slashes, no-break or zero-width spaces between digits, and full-width digits. |
 | SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, timestamp buckets, country codes, merchant category codes, and derived model parameters. |
 | SM-PRIV-004 | Rejection responses MUST NOT echo the rejected value in the body, headers, or logs. |
 | SM-PRIV-005 | No log statement at any level MAY emit a field that failed SM-PRIV-002. |
@@ -325,6 +326,13 @@ Storage.
 ---
 
 ## 15. Revision history
+
+**v0.4 (2026-11-25)**
+- SM-PRIV-001: the whole value must match; no trailing newline.
+- SM-PRIV-002 rewritten. The v0.3 wording ("a token whose body, after removing spaces, hyphens and
+  underscores, is 13–19 digits") never defined "body" and missed `tok_card_4111111111111111`,
+  dotted, slashed, no-break-spaced, zero-width-spaced and full-width forms. The new rule flags
+  everything the old one did, plus those.
 
 **v0.3 (2026-11-25)**
 - Added SM-TOK-008: lowercase exactly as Python 3.13's `str.lower()`, from data measured from
