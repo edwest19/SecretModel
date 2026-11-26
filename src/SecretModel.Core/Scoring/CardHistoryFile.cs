@@ -129,15 +129,11 @@ public static class CardHistoryFile
     }
 
     // Plain decimal digits only, as the writer writes them: no sign, fraction or exponent. At most 12
-    // digits, the most a seq can have (JSON itself refuses leading zeros).
+    // digits, the most a seq can have (JSON itself refuses leading zeros). Anything that is not a
+    // number has a quote, a letter or a bracket in its text, so the digits check refuses it too.
     private static bool TryReadWholeNumber(JsonElement element, out long value)
     {
         value = 0;
-        if (element.ValueKind != JsonValueKind.Number)
-        {
-            return false;
-        }
-
         string text = element.GetRawText();
         if (text.Length > 12 || text.Any(c => c is < '0' or > '9'))
         {

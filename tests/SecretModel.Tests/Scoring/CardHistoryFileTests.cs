@@ -108,8 +108,12 @@ public sealed class CardHistoryFileTests
     [DataRow("{\"format\":\"secretmodel-history\",\"version\":1,\"seq\":[1],\"symbols\":[1.5]}")]
     [DataRow("{\"format\":\"secretmodel-history\",\"version\":1,\"seq\":[1],\"symbols\":[\"2\"]}")]
     [DataRow("{\"format\":\"secretmodel-history\",\"version\":1,\"seq\":[1],\"symbols\":[3000000000]}")]
+    [DataRow("{\"format\":\"secretmodel-history\",\"version\":1,\"seq\":[1],\"symbols\":[4294967297]}")]
+    [DataRow("{\"format\":\"secretmodel-history\",\"version\":1,\"seq\":[99999999999999999999],\"symbols\":[2]}")]
     public void Read_AFileThatBreaksTheFormat_IsRejected(string json)
     {
+        // The last two rows: 4294967297 would wrap round to symbol 1 if it were cut to 32 bits, and
+        // 20 digits do not fit in a long, so both must be refused before any conversion.
         Assert.ThrowsExactly<InvalidDataException>(() => CardHistoryFile.Read(Encoding.UTF8.GetBytes(json)));
     }
 
