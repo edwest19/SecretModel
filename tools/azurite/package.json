@@ -1,0 +1,8 @@
+{
+  "name": "secretmodel-azurite",
+  "description": "Azurite, Microsoft's local Blob Storage emulator, pinned for SecretModel's tests only. Never a runtime dependency. Written by Claude (Anthropic); see README section 9.2.",
+  "private": true,
+  "devDependencies": {
+    "azurite": "3.38.0"
+  }
+}

@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.7 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.8 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -13,7 +13,7 @@ not production, and it never handles real card or cardholder data.
 
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
-(§7), and the profile file and Home-mode model store (§9). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+(§7), the profile file, and the Home-mode and Azure Blob model stores (§9). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -27,7 +27,8 @@ dotnet build SecretModel.slnx -c Release
 ```
 
 CI (`.github/workflows/build.yml`) builds and tests every pull request and every push to `main` on
-ubuntu-latest and windows-latest. A failing test or a compiler warning fails the run.
+ubuntu-latest and windows-latest. A failing test or a compiler warning fails the run. The Blob store
+tests also need Azurite, which CI starts (§9.2).
 
 ## Repository layout
 
@@ -42,13 +43,14 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 | `tools/SecretModel.Synthetic` | Synthetic shoppers and injected anomalies, for tests, the study and the harness. |
 | `tools/SecretModel.ScoringStudy` | The measurement behind §7.1. |
+| `tools/azurite` | Azurite, Microsoft's Blob Storage emulator, pinned for the tests only (§9.2). |
 | `docs/studies` | Full output of each measurement that decided a setting. |
 
 ---
 
 # Requirements Specification
 
-**Version:** 0.7
+**Version:** 0.8
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -308,7 +310,7 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 
 Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each card has one
 **profile**: its trained model together with its likelihood history, the baseline (SM-SCORE-012).
-**Home mode:** a local folder (§9.1). **Azure mode:** Blob Storage.
+**Home mode:** a local folder (§9.1). **Azure mode:** Blob Storage (§9.2).
 
 | ID | Requirement |
 |---|---|
@@ -339,8 +341,33 @@ Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each 
 
 **Tests:** `CardProfileFileTests`, `ProfileKeyTests` and `FileModelStoreTests`. The concurrency
 tests use several store objects in one process. Writers in separate processes rely on the same
-operating-system lock, but that is not tested yet. SM-STOR-004, and SM-STOR-002 in Azure mode, come
-with the Blob store.
+operating-system lock, but that is not tested yet. Azure mode is tested in §9.2.
+
+### 9.2 Azure-mode store
+
+- **Blob name:** the same path as §9.1, `{client hash}/{customer token}/{card token}.profile.json`,
+  stored as a block blob with content type `application/json` in one container. The deployment
+  creates the container; the server never creates or deletes one. A missing container is an error,
+  never "no profile".
+- **Version:** the blob's ETag. A create sends `If-None-Match: *`, and a replace sends `If-Match`
+  with the version that was read. Blob Storage itself refuses a write that lost a race: 409 when a
+  profile already exists, 412 when it was changed or removed (measured on Azurite). The store reports
+  either as a conflict (SM-STOR-002). Because Blob Storage does the check, it holds across any number
+  of App Service instances (SM-STOR-004).
+- **No cache** (SM-STOR-003): every read downloads the blob.
+- **Package:** `Azure.Storage.Blobs` 12.29.2. Version 12.30.0 and later depend on Apache.Arrow, a
+  third-party package.
+
+**Tests:** `BlobModelStoreTests`, run against **Azurite** 3.38.0, Microsoft's local Blob Storage
+emulator. It is pinned with all 369 of its dependencies, each with a SHA-512 hash, in
+`tools/azurite/package-lock.json`. Each separate store object stands in for a server instance. CI
+installs Azurite with `npm ci --ignore-scripts` and starts it with `--disableTelemetry`; without that
+flag, Azurite sends usage data to Microsoft. The tests connect with `UseDevelopmentStorage=true`, the
+emulator's public development account, so no key is stored anywhere. If Azurite isn't running, every
+Blob store test fails and says how to start it; none is skipped. To run these tests yourself, start
+Azurite as the workflow's "Start Azurite" step does, which needs Node.js 22 or newer. Microsoft also
+documents Docker, the VS Code extension, and the copy that ships with Visual Studio 2022; none of
+those has been tried here. Real Azure Blob Storage is not tested yet.
 
 ---
 
@@ -411,6 +438,10 @@ with the Blob store.
 ---
 
 ## 15. Revision history
+
+**v0.8 (2026-11-25)**
+- Added §9.2, the Azure-mode store: blob names, ETag versions with conditional writes, no cache.
+- SM-STOR-002 and SM-STOR-004 are now tested in Azure mode, against Azurite in CI.
 
 **v0.7 (2026-11-25)**
 - Added SM-STOR-007: the profile file, format `secretmodel-profile` version 1

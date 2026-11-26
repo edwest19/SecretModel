@@ -22,10 +22,11 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 |---|---|---|
 | `MSTest` (version from the .NET 10 template) | Tests | Test framework |
 | `Microsoft.AspNetCore.Mvc.Testing` | Tests | In-process API tests |
-| `Azure.Storage.Blobs` | Api | Azure-mode model store and journal source |
-| Azurite (npm, Microsoft) | Tests only | Local Blob Storage emulator; never a runtime dependency |
+| `Azure.Storage.Blobs` **12.29.2** | Api | Azure-mode model store and journal source. Stay below 12.30.0, which adds Apache.Arrow (third-party), unless Edwin says otherwise. |
+| Azurite **3.38.0** (npm, Microsoft) | Tests only | Local Blob Storage emulator; never a runtime dependency. Locked in `tools/azurite/package-lock.json`; always run with `--disableTelemetry`. |
 
-`SecretModel.Core` takes **no** package dependencies.
+`SecretModel.Core` takes **no** package dependencies. CI installs Node.js 22 with
+`actions/setup-node` v7.1.0 (pinned to its commit) only to run Azurite.
 
 ## Layout
 
@@ -34,6 +35,7 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 - `src/SecretModel.Api`: ASP.NET Core host, certificate authentication, the Azure Blob model store.
 - `tests/SecretModel.Tests`: MSTest tests.
 - `tools/SecretModel.Synthetic`: synthetic shoppers and anomalies (made-up data) for tests, the study and the harness.
+- `tools/azurite`: the pinned Azurite emulator (`package.json`, `package-lock.json`) and `wait-for-port.mjs`, for the Blob store tests only.
 - `tools/SecretModel.ScoringStudy`: the measurement behind README §7.1; its output lives in `docs/studies/`.
 - `reference/python`: the Meta AI prototype. **Read-only.** Never edit it; its attribution stays.
   `PROVENANCE.md` there lists every file's hash.
