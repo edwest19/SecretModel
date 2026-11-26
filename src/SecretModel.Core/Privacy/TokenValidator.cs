@@ -54,10 +54,15 @@ public static partial class TokenValidator
     /// <summary>True only for <see cref="TokenVerdict.Valid"/>.</summary>
     public static bool IsValid(string? value) => Check(value) == TokenVerdict.Valid;
 
+    /// <summary>
+    /// True when <paramref name="value"/> holds 13 or more consecutive decimal digits, in any script,
+    /// ignoring every character that is not a letter or digit (SM-PRIV-002). Used on its own by the
+    /// journal reader, which scans whole values and lines rather than single tokens (SM-JRNL-005).
+    /// </summary>
     // Ignores every character that is not a letter or digit (spaces, hyphens, underscores, dots,
     // slashes, no-break and zero-width spaces, ...), then looks for 13 or more consecutive decimal
     // digits in any script, so full-width or other non-ASCII digits count too.
-    private static bool HasLongDigitRun(string value)
+    public static bool HasLongDigitRun(string value)
     {
         int run = 0;
         foreach (Rune rune in value.EnumerateRunes())

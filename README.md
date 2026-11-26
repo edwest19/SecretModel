@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.8 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.9 by Claude Opus 5.5, 2026-11-25 to 2026-11-26. AI-generated. -->
 
 # SecretModel
 
@@ -13,7 +13,8 @@ not production, and it never handles real card or cardholder data.
 
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
-(§7), the profile file, and the Home-mode and Azure Blob model stores (§9). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+(§7), the profile file, the Home-mode and Azure Blob model stores (§9), and the journal file reader
+(§8.1). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -34,7 +35,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 | Path | What it holds |
 |---|---|
-| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile file and the Home-mode model store. No ASP.NET or Azure dependencies. |
+| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile file, the Home-mode model store and the journal file reader. No ASP.NET or Azure dependencies. |
 | `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, the Azure Blob model store. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
@@ -50,8 +51,8 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.8
-**Date:** 2026-11-25
+**Version:** 0.9
+**Date:** 2026-11-26
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
 
@@ -295,7 +296,7 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 
 | ID | Requirement |
 |---|---|
-| SM-JRNL-001 | Journal files are newline-delimited JSON, one tokenized transaction per line, UTF-8. |
+| SM-JRNL-001 | Journal files are newline-delimited JSON, one tokenized transaction per line, UTF-8, in the locked format `secretmodel-journal` version 1 (`docs/formats/journal-v1.md`). |
 | SM-JRNL-002 | A malformed record MUST be quarantined with its line number and reason; the remainder of the batch MUST continue processing. |
 | SM-JRNL-003 | Ingestion MUST be idempotent. Reprocessing an already-processed file MUST NOT alter model state. |
 | SM-JRNL-004 | Records MUST be grouped by `(client_id, customer_token, card_token)` and ordered by sequence before training. |
@@ -303,6 +304,32 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 | SM-JRNL-006 | Successfully processed files MUST move to an archive prefix. A partially failed file MUST remain in place for retry. |
 | SM-JRNL-007 | A card with fewer than 10 transactions MUST NOT be trained; it remains cold-start. |
 | SM-JRNL-008 | Ingestion MUST record a per-file audit entry: filename, record count, quarantine count, cards trained, timestamp. No transaction content. |
+
+### 8.1 Journal file
+
+- **Format:** `docs/formats/journal-v1.md`, approved by Edwin on 2026-11-26. Each line is one JSON
+  object with exactly eight properties, in any order: `seq` (0 to 999,999,999,999), the
+  transaction, customer and card tokens, `amount_bin`, `merchant_category` (one of the quantizer's
+  eight names, exactly), `hour` and `is_online`. There is no `country_code`, because the model
+  doesn't use it. A file names no client: the client comes from the folder the file is in, never
+  from its contents (SM-AUTH-003).
+- **Reader:** `SecretModel.Core.Journal.JournalFile`. It reads a whole file and returns either the
+  valid records and the quarantined lines (line number and reason only, SM-JRNL-002), or a
+  rejection of the whole file with the number of the first line that may carry a card number
+  (SM-JRNL-005). It never returns anything else from a line. Strings follow JSON; .NET's parser
+  turned out to accept a repeated property name, invalid UTF-8 inside a string and an escape such as
+  `\ud800` (measured), so the reader checks for each of them itself.
+- **Possible card number (SM-PRIV-002 applied to a file):** in a line that is valid JSON, each
+  property name and each value is scanned on its own, with an array or object counted as one value
+  and well-formed tokens exempt. In any other line the whole text is scanned and nothing is exempt.
+  So a malformed line that holds a well-formed token rejects the file if the token happens to have
+  13 decimal digits in a row: for a random token that chance is 1.138%, and 3.375% for a line with
+  three tokens (computed exactly, and matched by a simulation of 1,000,000 tokens: 1.150%).
+- **Not yet:** grouping, ordering, training, idempotency, archiving and the audit entry
+  (SM-JRNL-003, -004, -006, -007, -008) come with Home-mode ingestion; the Azure journal source
+  comes with the Azure deployment.
+
+**Tests:** `JournalFileTests`, including the format's byte-for-byte known answer.
 
 ---
 
@@ -438,6 +465,11 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 ---
 
 ## 15. Revision history
+
+**v0.9 (2026-11-26)**
+- Added §8.1, the journal file: format `secretmodel-journal` version 1 (`docs/formats/journal-v1.md`)
+  and its strict reader.
+- SM-JRNL-001 now names the locked format. SM-JRNL-001, -002 and -005 are tested.
 
 **v0.8 (2026-11-25)**
 - Added §9.2, the Azure-mode store: blob names, ETag versions with conditional writes, no cache.

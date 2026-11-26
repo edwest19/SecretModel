@@ -20,6 +20,13 @@ public static class Quantizer
     /// <summary>The group for any category not in the table (SM-QNT-004).</summary>
     public const int OtherMccGroup = 7;
 
+    /// <summary>
+    /// The eight category names, lowercase, in group order: group g is <c>CategoryNames[g]</c>. A
+    /// journal record must use one of these exactly (docs/formats/journal-v1.md).
+    /// </summary>
+    public static IReadOnlyList<string> CategoryNames { get; } =
+        ["grocery", "gas", "restaurant", "retail", "travel", "online_market", "atm", "other"];
+
     private static readonly Dictionary<string, int> MccGroups = new(StringComparer.Ordinal)
     {
         ["grocery"] = 0,
