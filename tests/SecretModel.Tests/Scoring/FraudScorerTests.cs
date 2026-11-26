@@ -244,6 +244,29 @@ public sealed class FraudScorerTests
     }
 
     [TestMethod]
+    [TestCategory("SM-SCORE-009")]
+    [TestCategory("SM-SCORE-001")]
+    public void ViterbiPath_IsConditionedOnTheHistory_NotOnPi()
+    {
+        int[] history = new SyntheticShopper(16).History(150);
+        var options = Defaults with { WindowLength = 4 };
+        CardProfile profile = CardProfile.Build(history, options);
+        double[] state = [.. profile.StateBeforeWindow];
+
+        int differsFromPi = 0;
+        for (int symbol = 0; symbol < 512; symbol += 3)
+        {
+            int[] window = [.. profile.RecentSymbols, symbol];
+            int[] conditioned = profile.Model.Viterbi(window, state).Path;
+            CollectionAssert.AreEqual(conditioned, FraudScorer.Score(profile, symbol, options).ViterbiPath.ToArray(), $"symbol {symbol}");
+            differsFromPi += conditioned.SequenceEqual(profile.Model.Viterbi(window).Path) ? 0 : 1;
+        }
+
+        // Otherwise this test could not tell a path from pi apart from a conditioned one.
+        Assert.IsGreaterThan(0, differsFromPi, "No symbol's path differs between pi and the history, so the check is vacuous.");
+    }
+
+    [TestMethod]
     [TestCategory("SM-SCORE-010")]
     public void P95Latency_IsUnder200ms_ForAWarmProfile()
     {
@@ -330,14 +353,16 @@ public sealed class FraudScorerTests
         double[] baseline = [.. profile.Baseline];
         byte[] model = HmmModelFile.Write(profile.Model);
 
+        // Checked after every call: a change that undoes itself on the next call (for example
+        // reversing an array) would cancel out over an even number of calls.
         for (int symbol = 0; symbol < 512; symbol += 7)
         {
             FraudScorer.Score(profile, symbol, Defaults);
+            CollectionAssert.AreEqual(recent, profile.RecentSymbols.ToArray(), $"after symbol {symbol}");
+            CollectionAssert.AreEqual(state, profile.StateBeforeWindow.ToArray(), $"after symbol {symbol}");
+            CollectionAssert.AreEqual(baseline, profile.Baseline.ToArray(), $"after symbol {symbol}");
         }
 
-        CollectionAssert.AreEqual(recent, profile.RecentSymbols.ToArray());
-        CollectionAssert.AreEqual(state, profile.StateBeforeWindow.ToArray());
-        CollectionAssert.AreEqual(baseline, profile.Baseline.ToArray());
         CollectionAssert.AreEqual(model, HmmModelFile.Write(profile.Model));
     }
 
