@@ -5,6 +5,7 @@
 // (restart doesn't change scores) and SM-STOR-006 (tenant isolation at the storage layer).
 // Each test uses its own new folder under the system temp folder and deletes it afterwards.
 
+using System.Diagnostics;
 using System.Security.Cryptography;
 using SecretModel.Core.Scoring;
 using SecretModel.Core.Storage;
@@ -160,7 +161,9 @@ public sealed class FileModelStoreTests
     [TestCategory("SM-STOR-002")]
     public async Task Readers_DuringWrites_AlwaysSeeAWholeProfile()
     {
-        // Two real profiles of different sizes, written in turn while a reader keeps reading.
+        // Two profiles of different sizes, written in turn while a reader keeps reading. The writer
+        // starts after the reader's first read and keeps going until the reader has read at least
+        // 200 times and seen both profiles, so reads and writes really do overlap.
         CardProfile a = CardProfileFileTests.RealProfile.Value;
         CardProfile b = CardProfileFileTests.DocumentedProfile();
         string versionA = Sha256Hex(CardProfileFile.Write(a));
@@ -170,23 +173,51 @@ public sealed class FileModelStoreTests
         string current = await writerStore.PutAsync(Key(), a, null);
 
         using var done = new CancellationTokenSource();
-        int reads = 0;
+        var firstRead = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int reads = 0, sawA = 0, sawB = 0;
         Task reader = Task.Run(async () =>
         {
-            while (!done.IsCancellationRequested)
+            try
             {
-                StoredProfile? stored = await readerStore.GetAsync(Key());
-                Assert.IsNotNull(stored, "The profile must never be missing while it is replaced.");
-                Assert.IsTrue(stored.Version == versionA || stored.Version == versionB, "A read must give one whole profile.");
-                reads++;
+                while (!done.IsCancellationRequested)
+                {
+                    StoredProfile? stored = await readerStore.GetAsync(Key());
+                    Assert.IsNotNull(stored, "The profile must never be missing while it is replaced.");
+                    if (stored.Version == versionA)
+                    {
+                        Volatile.Write(ref sawA, 1);
+                    }
+                    else if (stored.Version == versionB)
+                    {
+                        Volatile.Write(ref sawB, 1);
+                    }
+                    else
+                    {
+                        Assert.Fail("A read must give one whole profile.");
+                    }
+
+                    Interlocked.Increment(ref reads);
+                    firstRead.TrySetResult();
+                }
+            }
+            catch (Exception e)
+            {
+                firstRead.TrySetException(e);
+                throw;
             }
         });
 
+        int writes = 0;
+        var clock = Stopwatch.StartNew();
         try
         {
-            for (int i = 0; i < 200; i++)
+            await firstRead.Task;
+            while (!reader.IsCompleted
+                && (writes < 200 || Volatile.Read(ref reads) < 200 || Volatile.Read(ref sawA) == 0 || Volatile.Read(ref sawB) == 0))
             {
-                current = await writerStore.PutAsync(Key(), i % 2 == 0 ? b : a, current);
+                Assert.IsLessThan(30.0, clock.Elapsed.TotalSeconds, $"Too slow: {writes} writes, {Volatile.Read(ref reads)} reads.");
+                current = await writerStore.PutAsync(Key(), writes % 2 == 0 ? b : a, current);
+                writes++;
             }
         }
         finally
@@ -196,8 +227,9 @@ public sealed class FileModelStoreTests
             await Task.WhenAny(reader);
         }
 
-        await reader;
-        Assert.IsGreaterThan(0, reads);
+        await reader; // a failed read fails the test here
+        Assert.IsGreaterThanOrEqualTo(200, writes);
+        Assert.IsGreaterThanOrEqualTo(200, reads);
     }
 
     [TestMethod]

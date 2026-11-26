@@ -331,8 +331,10 @@ Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each 
   Because the version comes from the content, a file put back byte for byte counts as unchanged.
 - **Writing:** a write holds an exclusive lock on `{profile}.lock`, an empty file that stays next to
   the profile. It writes `.{random}.tmp` in the same folder and renames it over the profile, so a
-  reader sees the old profile or the new one, never part of one. A crash can leave a `.tmp` file
-  behind; it is never read.
+  reader sees the old profile or the new one, never part of one. Windows refuses that rename while a
+  reader has the profile open (measured in CI), so on Windows the writer tries again every few
+  milliseconds, still holding the lock, and fails loudly after 10 seconds. A failed or interrupted
+  write can leave a `.tmp` file behind; it is never read.
 - **No cache** (SM-STOR-003): every read opens the file.
 
 **Tests:** `CardProfileFileTests`, `ProfileKeyTests` and `FileModelStoreTests`. The concurrency

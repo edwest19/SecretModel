@@ -58,12 +58,33 @@ public sealed class FileModelStore : IModelStore
                     : "The stored profile was changed by another writer.");
             }
 
+            // A failed or interrupted write can leave this file behind; it is never read.
             string temporary = Path.Combine(folder, $".{Guid.NewGuid():N}.tmp");
             await File.WriteAllBytesAsync(temporary, bytes, cancellationToken);
-            File.Move(temporary, path, overwrite: true);
+            await ReplaceAsync(temporary, path, cancellationToken);
         }
 
         return VersionOf(bytes);
+    }
+
+    // Windows refuses to rename over a file that a reader has open, even one opened with
+    // FileShare.Delete (measured on windows-latest: UnauthorizedAccessException). A reader holds the
+    // file only while it copies the bytes, so try again, still holding the lock, until the timeout.
+    private static async Task ReplaceAsync(string temporary, string path, CancellationToken cancellationToken)
+    {
+        DateTime giveUp = DateTime.UtcNow + LockTimeout;
+        while (true)
+        {
+            try
+            {
+                File.Move(temporary, path, overwrite: true);
+                return;
+            }
+            catch (UnauthorizedAccessException) when (OperatingSystem.IsWindows() && DateTime.UtcNow < giveUp)
+            {
+                await Task.Delay(1, cancellationToken);
+            }
+        }
     }
 
     private static string VersionOf(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
