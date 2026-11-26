@@ -3,6 +3,7 @@
 # Builds and tests the solution on Linux and Windows for every pull request and every push to main.
 # Any failing test or compiler warning fails the run (README SM-VER-004; warnings are errors in
 # Directory.Build.props). Actions are pinned to full commit SHAs; the comment names the release.
+# The Blob store tests run against Azurite, started here with telemetry off (README §9.2).
 
 name: Build
 
@@ -37,6 +38,19 @@ jobs:
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           global-json-file: global.json
+
+      - name: Set up Node.js 22 (for Azurite, tests only)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Start Azurite Blob emulator (locked by tools/azurite/package-lock.json, telemetry off)
+        shell: bash
+        run: |
+          npm ci --prefix tools/azurite --ignore-scripts --no-audit --no-fund
+          tools/azurite/node_modules/.bin/azurite-blob --silent --disableTelemetry --location "$RUNNER_TEMP/azurite" --blobHost 127.0.0.1 --blobPort 10000 > "$RUNNER_TEMP/azurite.log" 2>&1 &
+          node tools/azurite/wait-for-port.mjs 127.0.0.1 10000 30
 
       - name: Show .NET SDK version
         run: dotnet --version
