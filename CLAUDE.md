@@ -32,6 +32,8 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 - `src/SecretModel.Core`: tokenizer, quantizer, token validation, HMM, scorer. No ASP.NET, no Azure.
 - `src/SecretModel.Api`: ASP.NET Core host, certificate authentication, storage adapters.
 - `tests/SecretModel.Tests`: MSTest tests.
+- `tools/SecretModel.Synthetic`: synthetic shoppers and anomalies (made-up data) for tests, the study and the harness.
+- `tools/SecretModel.ScoringStudy`: the measurement behind README §7.1; its output lives in `docs/studies/`.
 - `reference/python`: the Meta AI prototype. **Read-only.** Never edit it; its attribution stays.
   `PROVENANCE.md` there lists every file's hash.
 

@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.5 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.6 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -12,7 +12,8 @@ West decides what it does and approves every merge. It is for demonstration, tes
 not production, and it never handles real card or cardholder data.
 
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
-validation and the identifier check (SM-PRIV-001, -002, -006), and the HMM core (§6). A
+validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6) and the scorer
+(§7). A
 requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
@@ -40,12 +41,15 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 | `docs/formats` | Locked file formats, each with a known-answer test. |
 | `tools/golden` | Produces the tests' golden vectors: by running the Python reference, or by exhaustive exact computation. |
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
+| `tools/SecretModel.Synthetic` | Synthetic shoppers and injected anomalies, for tests, the study and the harness. |
+| `tools/SecretModel.ScoringStudy` | The measurement behind §7.1. |
+| `docs/studies` | Full output of each measurement that decided a setting. |
 
 ---
 
 # Requirements Specification
 
-**Version:** 0.5
+**Version:** 0.6
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -196,10 +200,11 @@ How a transaction amount becomes an `amount_bin` is not specified yet (OPEN-7).
 | SM-HMM-009 | One Baum-Welch update MUST match, within 1e-12, the update computed exactly by enumerating every hidden-state path, over several sequences including a one-symbol sequence. *(The prototype skipped sequences shorter than 2.)* |
 | SM-HMM-010 | Invalid input MUST be rejected: empty sequences, symbols outside 0 to `n_symbols − 1`, and parameter rows that are negative, not finite, or don't sum to 1 within 1e-9. A sequence the model can't produce MUST score −∞, never NaN, and can't be trained on. |
 | SM-HMM-011 | The model file MUST follow `docs/formats/hmm-model-v1.md`: the writer produces the documented example byte for byte, and the reader rejects anything that deviates from the format. |
+| SM-HMM-012 | The model MUST give each step's log-likelihood conditioned on everything observed before it (the forward algorithm's scaling factors, which sum to the sequence's log-likelihood) and the hidden-state distribution after a sequence. Continuing from that distribution MUST give the same steps as scoring the whole sequence. |
 
 Training is plain maximum-likelihood Baum-Welch, which is what guarantees SM-HMM-002. A state that
-expects no visits keeps its previous rows instead of dividing by zero. Smoothing (OPEN-2) is decided
-in the scoring work, with its own requirement and test.
+expects no visits keeps its previous rows instead of dividing by zero. Smoothing is applied after
+training, when a card's profile is built (SM-SCORE-013).
 
 Known answers for SM-HMM-001, -003 and -009 come from `tools/golden/generate_hmm_vectors.py`, which
 enumerates every state path in exact fractions instead of running a forward-backward or Viterbi
@@ -211,7 +216,8 @@ algorithm, and from the worked example in Wikipedia's "Viterbi algorithm" articl
 This is badly underdetermined; the model will train without error and learn largely noise.
 Candidate mitigations: stronger Dirichlet smoothing on B; a backoff prior toward a population-level
 emission matrix; or a coarser alphabet (e.g. folding `is_online` into the MCC group, giving 256).
-To be decided with measurements from SM-SCORE-004, not by assertion.
+**Resolved by measurement (§7.1):** after training, each emission row is mixed with the product of
+that state's per-feature distributions (SM-SCORE-013). Uniform smoothing did not help at all.
 
 ---
 
@@ -223,16 +229,60 @@ of length-20 log-likelihoods, saturating the sigmoid.
 
 | ID | Requirement |
 |---|---|
-| SM-SCORE-001 | Scoring MUST evaluate a window of the card's `W` most recent transactions, ending with the transaction under test. `W` configurable. |
+| SM-SCORE-001 | Scoring MUST evaluate a window of the card's `W` most recent transactions, ending with the transaction under test. Its likelihood MUST be conditioned on the card's journal history before the window (forward filtering), not on the model's initial distribution π. `W` configurable; **default 1** (§7.1). |
 | SM-SCORE-002 | Likelihood MUST be length-normalized (mean log-likelihood per symbol) so window length cannot bias the score. |
-| SM-SCORE-003 | The baseline distribution MUST be built from windows of the same length `W` used at scoring time. Comparing unlike lengths MUST be impossible by construction, not by convention. |
-| SM-SCORE-004 | **Discrimination.** On a synthetic cardholder with injected anomalies, the scorer MUST separate anomalous from habitual transactions with AUC ≥ 0.80. A sweep of all 512 symbols MUST produce more than one verdict class. *This test would have failed the prototype.* |
+| SM-SCORE-003 | The baseline distribution MUST be built from windows of the same length `W` used at scoring time, conditioned the same way. Comparing unlike lengths MUST be impossible by construction, not by convention: the profile fixes `W`, and scoring takes no window length. |
+| SM-SCORE-004 | **Discrimination.** With default options, over 20 synthetic shoppers (seeds 1–20; 300 journal transactions each, then 300 later habitual purchases and 100 each of random, takeover and subtle anomalies), the mean AUC of `fraud_score` MUST be ≥ 0.80. A sweep of all 512 symbols MUST produce more than one verdict class for every shopper. *This test would have failed the prototype.* |
 | SM-SCORE-005 | Cold start (no trained model for the card) MUST return `REVIEW` with confidence ≤ 0.3 and anomaly factor `cold_start_no_history`. |
 | SM-SCORE-006 | Verdict thresholds: `fraud_score < 0.3` → `LEGIT`; `< 0.7` → `REVIEW`; otherwise `FRAUD_SUSPECTED`. Thresholds configurable. |
 | SM-SCORE-007 | Scoring MUST be deterministic: identical input and identical model yield an identical score. |
-| SM-SCORE-008 | `fraud_score` MUST lie in [0,1] and MUST never be NaN or infinity for any input accepted by §2 and §5. |
-| SM-SCORE-009 | The response MUST include the Viterbi path over the scored window and the expected-likelihood range. |
+| SM-SCORE-008 | `fraud_score` MUST lie in [0,1] and MUST never be NaN or infinity for any input accepted by §2 and §5, including a window the model gives probability zero. |
+| SM-SCORE-009 | The response MUST include the Viterbi path over the scored window and the expected-likelihood range: the 5th and 95th percentiles (nearest rank) of the card's baseline. |
 | SM-SCORE-010 | p95 scoring latency MUST be under 200 ms for a warm model. |
+| SM-SCORE-011 | `fraud_score` = clamp(1 − p / α, 0, 1), where p = (1 + the number of baseline windows at most as likely as the scored window) / (n + 1) for n baseline windows, and α = 0.05 by default. A window more ordinary than the card's least-likely α share of its baseline scores 0. |
+| SM-SCORE-012 | **Out-of-sample baseline.** The model MUST be trained on the oldest 1 − h of the card's journal (h = 0.33 by default), and the baseline built only from windows whose newest transaction is in the held-out part, so it measures how surprising unseen transactions were. |
+| SM-SCORE-013 | **Emission smoothing (resolves OPEN-2).** After training, each emission row MUST be mixed, with weight λ = 0.3, with the product of that state's four per-feature distributions (amount bin, merchant group, time bucket, online), each floored with weight μ = 0.01 toward uniform. Uniform smoothing remains available. Holding data out requires λ > 0. |
+| SM-SCORE-014 | `confidence` = max(0, 1 − 1 / ((n + 1)·α)): the highest `fraud_score` the profile can produce. It is 0 at cold start, so a profile too small to raise an alarm says so. |
+| SM-SCORE-015 | Scoring is read-only: it MUST NOT change the profile. The window's earlier transactions come from the journal. |
+
+### 7.1 How the defaults were chosen (OPEN-2, OPEN-3)
+
+`tools/SecretModel.ScoringStudy` builds profiles for synthetic shoppers (`tools/SecretModel.Synthetic`),
+scores later habitual purchases and injected anomalies, and reports AUC and how often each verdict
+comes out. Full output: `docs/studies/scoring-study.md`. History 300, 10 shoppers per row:
+
+| Design | AUC | Normal REVIEW+ | Normal FRAUD | Anomaly REVIEW+ | Anomaly FRAUD |
+|---|---|---|---|---|---|
+| Windows conditioned on π (first design), W 5, uniform λ 0.01 | 0.678 | 9.6 % | 6.0 % | 28.9 % | 28.3 % |
+| Conditioned on history, W 1, uniform λ 0.01, in-sample baseline | 0.894 | 24.1 % | 20.7 % | 93.6 % | 93.1 % |
+| … feature backoff λ 0.3 μ 0.01, in-sample baseline | 0.921 | 22.4 % | 15.8 % | 93.0 % | 91.2 % |
+| **… held-out baseline h 0.33 (the defaults)** | **0.891** | **2.6 %** | **0.9 %** | **77.9 %** | **70.9 %** |
+
+What the measurements showed:
+
+- **The first design was wrong.** Scoring each window from π, the initial-state distribution, made AUC
+  collapse to about 0.54–0.68 as soon as any smoothing was used. Training on one long history fits π
+  to its first transaction only. Conditioning each window on the history before it fixed this.
+- **An in-sample baseline floods alerts.** Built from the training data itself, the baseline is
+  optimistic, and 16–21 % of normal purchases came out FRAUD. Holding out the newest third brought
+  that to 0.9 %, close to what α = 0.05 intends, at a small cost in AUC.
+- **W = 1 is best (OPEN-3).** With a held-out baseline, longer windows dilute the new transaction's
+  surprise with history the model has already seen. AUC by W: 0.891 (1), 0.878 (2), 0.842 (3),
+  0.785 (5), 0.826 (10), 0.814 (20).
+- **Uniform smoothing makes no difference; feature backoff helps (OPEN-2).** An unseen combination of
+  habitual features (usual merchant, amount and time) stays plausible, while unusual features don't.
+- **By anomaly kind** (defaults): random 0.921, takeover 0.996, subtle 0.758. A subtle anomaly is a
+  habitual purchase with one feature changed and is sometimes still habitual, so it is the hardest.
+- **History length limits what a card can say.** With these defaults a card needs at least 85 journal
+  transactions before any score can reach `REVIEW`, and at least 200 before `FRAUD_SUSPECTED` is
+  possible; `confidence` (SM-SCORE-014) is exactly that ceiling. AUC by history: 0.500 (30), 0.500 (60),
+  0.811 (100), 0.891 (300), 0.938 (1,000).
+- **Read-only scoring costs nothing here.** Scoring each purchase against its true predecessors
+  instead of the journal's tail gave AUC 0.890 vs 0.891 (SM-SCORE-015).
+- **Shoppers vary.** Across seeds 1–20 the mean AUC is 0.887; the weakest shopper scored 0.779.
+
+These are synthetic shoppers, not real fraud. The numbers compare designs; they don't predict
+performance on real cards.
 
 ---
 
@@ -311,8 +361,8 @@ Storage.
 | ID | Decision needed | Blocks | Status |
 |---|---|---|---|
 | OPEN-1 | Journal landing in Azure | §8 | **Resolved 2026-11-25:** Blob Storage SFTP endpoint |
-| OPEN-2 | Emission sparsity mitigation | §7 tuning | Open: decide by measurement |
-| OPEN-3 | Scoring window size `W` | §7 | Open: decide by measurement against SM-SCORE-004 |
+| OPEN-2 | Emission sparsity mitigation | §7 tuning | **Resolved 2026-11-25 by measurement:** feature backoff, SM-SCORE-013 (§7.1) |
+| OPEN-3 | Scoring window size `W` | §7 | **Resolved 2026-11-25 by measurement:** W = 1 (§7.1) |
 | OPEN-4 | Repository | project setup | **Resolved 2026-11-25:** new repo `edwest19/SecretModel` |
 | OPEN-5 | Does the App Service front end overwrite a client-supplied `X-ARR-ClientCert`? Not verified. SM-AUTH-011 tests it against a deployed instance. | Azure deployment | Open |
 | OPEN-6 | License for distribution on GitHub | public release | Open: Edwin's decision |
@@ -338,6 +388,15 @@ Storage.
 ---
 
 ## 15. Revision history
+
+**v0.6 (2026-11-25)**
+- §7 scoring, settled by measurement (§7.1). OPEN-2 resolved (feature backoff), OPEN-3 resolved (W = 1).
+- SM-SCORE-001: windows are conditioned on the history before them, not on π (the first design, scored
+  from π, measured AUC 0.54–0.68 with smoothing). SM-SCORE-003: the profile fixes W.
+- SM-SCORE-004 now averages 20 synthetic shoppers rather than one; the weakest scored 0.779.
+- SM-SCORE-008 covers probability-zero windows; SM-SCORE-009 defines the expected range.
+- Added SM-SCORE-011 (score from the baseline tail), -012 (held-out baseline), -013 (smoothing),
+  -014 (confidence), -015 (read-only scoring) and SM-HMM-012 (conditional step likelihoods).
 
 **v0.5 (2026-11-25)**
 - SM-HMM-002 states its rounding tolerance; SM-HMM-004 names SplitMix64; SM-HMM-005 points to the

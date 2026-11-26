@@ -8,7 +8,7 @@ namespace SecretModel.Core.Hmm;
 /// a seed gives the same model on every OS and .NET version (README SM-HMM-004). It uses only
 /// integer arithmetic. Not for cryptography.
 /// </summary>
-internal sealed class SplitMix64(ulong seed)
+public sealed class SplitMix64(ulong seed)
 {
     private ulong state = seed;
 

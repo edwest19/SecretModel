@@ -115,13 +115,52 @@ public sealed class HiddenMarkovModel
     public double LogLikelihood(int[] observations)
     {
         CheckObservations(observations, nameof(observations));
-        return Forward(observations, new double[observations.Length * StateCount], new double[observations.Length]);
+        return Forward(observations, new double[observations.Length * StateCount], new double[observations.Length], pi);
     }
 
-    /// <summary>The most likely state path, in log space (SM-HMM-003). Ties go to the lower state.</summary>
-    public ViterbiResult Viterbi(int[] observations)
+    /// <summary>
+    /// log P(o[t] | everything observed before it) for each step t: the forward algorithm's scaling
+    /// factors, whose sum is the sequence's log-likelihood. Starts from pi, or, when
+    /// <paramref name="stateBefore"/> is given, from the hidden-state distribution after earlier
+    /// observations (<see cref="FilterState"/>), so a window can be scored in the context of the
+    /// history before it (README SM-SCORE-001). After an impossible step, that step and every later
+    /// one are negative infinity.
+    /// </summary>
+    public double[] StepLogLikelihoods(int[] observations, double[]? stateBefore = null)
     {
         CheckObservations(observations, nameof(observations));
+        var scale = new double[observations.Length];
+        Forward(observations, new double[observations.Length * StateCount], scale, StartDistribution(stateBefore));
+        return [.. scale.Select(c => Math.Log(c))];
+    }
+
+    /// <summary>
+    /// P(hidden state after the last observation | the observations), by scaled forward filtering from
+    /// pi or from <paramref name="stateBefore"/>. Throws if the observations are impossible.
+    /// </summary>
+    public double[] FilterState(int[] observations, double[]? stateBefore = null)
+    {
+        CheckObservations(observations, nameof(observations));
+        int length = observations.Length;
+        var alpha = new double[length * StateCount];
+        double ll = Forward(observations, alpha, new double[length], StartDistribution(stateBefore));
+        if (double.IsNegativeInfinity(ll))
+        {
+            throw new InvalidOperationException("The observations have probability zero, so no state distribution follows them.");
+        }
+
+        return alpha[((length - 1) * StateCount)..];
+    }
+
+    /// <summary>
+    /// The most likely state path, in log space (SM-HMM-003). Ties go to the lower state. With
+    /// <paramref name="stateBefore"/>, the path starts from the state distribution after earlier
+    /// observations (see <see cref="StepLogLikelihoods"/>) instead of pi.
+    /// </summary>
+    public ViterbiResult Viterbi(int[] observations, double[]? stateBefore = null)
+    {
+        CheckObservations(observations, nameof(observations));
+        double[] start = StartDistribution(stateBefore);
         int n = StateCount;
         int length = observations.Length;
         var delta = new double[n];
@@ -130,7 +169,7 @@ public sealed class HiddenMarkovModel
 
         for (int i = 0; i < n; i++)
         {
-            delta[i] = Math.Log(pi[i]) + Math.Log(b[i * SymbolCount + observations[0]]);
+            delta[i] = Math.Log(start[i]) + Math.Log(b[i * SymbolCount + observations[0]]);
         }
 
         for (int t = 1; t < length; t++)
@@ -248,7 +287,7 @@ public sealed class HiddenMarkovModel
             int length = obs.Length;
             var alpha = new double[length * n];
             var scale = new double[length];
-            double logLikelihood = Forward(obs, alpha, scale);
+            double logLikelihood = Forward(obs, alpha, scale, pi);
             if (double.IsNegativeInfinity(logLikelihood))
             {
                 return new Counts(piCount, aCount, bCount, double.NegativeInfinity);
@@ -342,9 +381,55 @@ public sealed class HiddenMarkovModel
         return result;
     }
 
+    // The distribution of the first hidden state: pi, or one transition on from stateBefore.
+    private double[] StartDistribution(double[]? stateBefore)
+    {
+        if (stateBefore is null)
+        {
+            return pi;
+        }
+
+        if (stateBefore.Length != StateCount)
+        {
+            throw new ArgumentException($"The state distribution must have {StateCount} entries.", nameof(stateBefore));
+        }
+
+        double total = 0;
+        foreach (double p in stateBefore)
+        {
+            if (!double.IsFinite(p) || p < 0)
+            {
+                throw new ArgumentException("The state distribution has a value that is negative or not finite.", nameof(stateBefore));
+            }
+
+            total += p;
+        }
+
+        if (Math.Abs(total - 1.0) > RowSumTolerance)
+        {
+            throw new ArgumentException("The state distribution must sum to 1.", nameof(stateBefore));
+        }
+
+        int n = StateCount;
+        var start = new double[n];
+        for (int j = 0; j < n; j++)
+        {
+            double sum = 0;
+            for (int i = 0; i < n; i++)
+            {
+                sum += stateBefore[i] * a[i * n + j];
+            }
+
+            start[j] = sum;
+        }
+
+        return start;
+    }
+
     // Scaled forward pass (Rabiner 1989): alpha[t] is normalized to sum 1 and c[t] keeps the factor,
-    // so log P(O) = sum of log c[t]. Returns negative infinity when some c[t] is 0.
-    private double Forward(int[] obs, double[] alpha, double[] scale)
+    // so log P(O) = sum of log c[t] and c[t] = P(o[t] | o[0..t-1]). Returns negative infinity when
+    // some c[t] is 0, leaving that and later entries of scale at 0.
+    private double Forward(int[] obs, double[] alpha, double[] scale, double[] start)
     {
         int n = StateCount;
         int m = SymbolCount;
@@ -358,7 +443,7 @@ public sealed class HiddenMarkovModel
                 double sum;
                 if (t == 0)
                 {
-                    sum = pi[j];
+                    sum = start[j];
                 }
                 else
                 {
