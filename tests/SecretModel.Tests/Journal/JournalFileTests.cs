@@ -216,6 +216,19 @@ public sealed class JournalFileTests
 
     [TestMethod]
     [TestCategory("SM-JRNL-001")]
+    public void Read_InvalidUtf8OutsideAString_IsQuarantinedAsInvalidText()
+    {
+        // The parser would call this line NotJson; the reader checks the encoding first.
+        byte[] file = Concat(Encoding.UTF8.GetBytes(Record()), [0xFF], Encoding.UTF8.GetBytes("\n" + Record() + "\n"));
+
+        JournalReadResult result = JournalFile.Read(file);
+
+        CollectionAssert.AreEqual(new[] { new QuarantinedLine(1, Reason.InvalidText) }, result.Quarantined.ToArray());
+        CollectionAssert.AreEqual(new[] { ValidRecordAt(2) }, result.Records.ToArray());
+    }
+
+    [TestMethod]
+    [TestCategory("SM-JRNL-001")]
     public void Read_ValidNonAsciiUtf8_IsNotInvalidText()
     {
         // "é" and an emoji are valid UTF-8, so the line gets as far as the category rule.
@@ -550,10 +563,20 @@ public sealed class JournalFileTests
     [DataRow("{\"card_token\":\"" + CardWithDigits + "\"")]
     [DataRow("{\"seq\":1,\"seq\":1,\"card_token\":\"" + CardWithDigits + "\"}")]
     [DataRow("{\"a\":\"\\ud800\",\"card_token\":\"" + CardWithDigits + "\"}")]
+    [DataRow("{\"card_token\":\"\\u0034\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\\u0031\"")]
+    [DataRow("{\"card_token\":\"\\uFF14\\uff11\\uFF11\\uff11\\uFF11\\uff11\\uFF11\\uff11\\uFF11\\uff11\\uFF11\\uff11\\uFF11\\uff11\\uFF11\\uff11\"")]
+    [DataRow("{\"seq\":1,\"seq\":1,\"x\":\"4111111\\n111111111\"}")]
+    [DataRow("{\"x\":\"41111111\\f11111111\"")]
+    [DataRow("{\"x\":\"41111111\\t11111111\"")]
+    [DataRow("{\"x\":\"41111111\\r11111111\"")]
+    [DataRow("{\"x\":\"41111111\\b11111111\"")]
+    [DataRow("{\"x\":\"\\u1234567890123\"")]
     public void Read_APossibleCardNumberInALineThatIsNotValidJson_RejectsTheWholeFile(string line)
     {
         // Rows 3 to 5 hold a well-formed token, but the line is not valid JSON (cut short, a repeated
-        // name, an unpaired surrogate), so nothing in it is exempt.
+        // name, an unpaired surrogate), so nothing in it is exempt. Rows 6 to 12 hide the digits behind
+        // JSON escapes (\u in either case of hex, \n, \f, \t, \r, \b), which are decoded for the scan.
+        // Row 13 needs the scan as written: decoded, \u1234 is a letter and only 9 digits follow it.
         JournalReadResult result = ReadLines(Record(), Record(("hour", "24")), line, Record());
 
         AssertRejectedAt(3, result);
@@ -569,6 +592,23 @@ public sealed class JournalFileTests
         byte[] file = Concat(Encoding.UTF8.GetBytes(Record() + "\n"), line, Encoding.UTF8.GetBytes("\n" + Record() + "\n"));
 
         AssertRejectedAt(2, JournalFile.Read(file));
+    }
+
+    [TestMethod]
+    [TestCategory("SM-JRNL-005")]
+    [TestCategory("SM-PRIV-002")]
+    [DataRow("{\"x\":\"\\\\u0031\\\\u0032\\\\u0033\\\\u0034\\\\u0035\\\\u0036\\\\u0037\\\\u0038\\\\u0039\\\\u0030\\\\u0031\\\\u0032\\\\u0033\"", Reason.NotJson)]
+    [DataRow("{\"x\":\"12345\\q67890123\"", Reason.NotJson)]
+    [DataRow("{\"x\":\"\\u004", Reason.NotJson)]
+    public void Read_ABrokenLineWhoseEscapesHoldNoLongRun_IsOnlyQuarantined(string line, Reason expected)
+    {
+        // Row 1: each \\ is an escaped backslash, so what follows is the letter u, not an escape, and the
+        // run is broken. Row 2: \q is no escape, so the q stays and breaks the 5 + 8 digits apart.
+        // Row 3: the line ends inside \u004, which is kept as written and read without error.
+        JournalReadResult result = ReadLines(line);
+
+        Assert.IsFalse(result.IsRejected);
+        CollectionAssert.AreEqual(new[] { new QuarantinedLine(1, expected) }, result.Quarantined.ToArray());
     }
 
     [TestMethod]

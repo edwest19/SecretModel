@@ -88,7 +88,14 @@ values is scanned on its own. Otherwise the line's value is scanned as a whole.
 
 **Any other line.** Its whole text is scanned, and nothing is exempt, not even something shaped like
 a token, because there are no values to tell apart. Each invalid UTF-8 sequence counts as a
-character that is neither a letter nor a digit. Escapes such as `4` are not decoded.
+character that is neither a letter nor a digit. The text is scanned twice:
+
+- as written;
+- with JSON's escapes decoded from left to right, as a JSON reader would: `4` is the digit 4,
+  `\n` a newline, and so on. So `\\u0034` is a backslash and then `u0034`. A backslash that starts no
+  escape is kept as it is.
+
+So escapes can't hide digits in a broken line either: `4111111\n111111111` holds 16 digits in a row.
 
 Every line is checked this way, including a line that would otherwise be quarantined.
 

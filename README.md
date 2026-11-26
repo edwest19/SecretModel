@@ -321,7 +321,8 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
   `\ud800` (measured), so the reader checks for each of them itself.
 - **Possible card number (SM-PRIV-002 applied to a file):** in a line that is valid JSON, each
   property name and each value is scanned on its own, with an array or object counted as one value
-  and well-formed tokens exempt. In any other line the whole text is scanned and nothing is exempt.
+  and well-formed tokens exempt. In any other line the whole text is scanned, both as written and
+  with JSON's escapes decoded, and nothing is exempt.
   So a malformed line that holds a well-formed token rejects the file if the token happens to have
   13 decimal digits in a row: for a random token that chance is 1.138%, and 3.375% for a line with
   three tokens (computed exactly, and matched by a simulation of 1,000,000 tokens: 1.150%).

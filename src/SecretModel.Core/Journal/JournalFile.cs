@@ -150,9 +150,63 @@ public static class JournalFile
 
     // A line that is not valid JSON has no values to tell apart, so its whole text is scanned and
     // nothing is exempt, not even a well-formed token. Invalid UTF-8 becomes U+FFFD, which is neither
-    // a letter nor a digit and so is ignored, like any other separator.
-    private static LineOutcome FromRawText(ReadOnlySpan<byte> line, Reason reason) =>
-        TokenValidator.HasLongDigitRun(Encoding.UTF8.GetString(line)) ? RejectsFile : Quarantine(reason);
+    // a letter nor a digit and so is ignored, like any other separator. The text is scanned twice: as
+    // written, and with JSON's escapes decoded, so 4 or a \n between digits can't hide a run
+    // (approved by Edwin West, 2026-11-26).
+    private static LineOutcome FromRawText(ReadOnlySpan<byte> line, Reason reason)
+    {
+        string text = Encoding.UTF8.GetString(line);
+        return TokenValidator.HasLongDigitRun(text) || TokenValidator.HasLongDigitRun(DecodeEscapes(text))
+            ? RejectsFile
+            : Quarantine(reason);
+    }
+
+    // Decodes JSON's escapes from left to right, as a JSON reader would, so "\\u0034" is a backslash
+    // and then "u0034", not the digit 4. Anything after a backslash that is not an escape is kept.
+    private static string DecodeEscapes(string text)
+    {
+        var decoded = new StringBuilder(text.Length);
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (c != '\\' || i + 1 == text.Length)
+            {
+                decoded.Append(c);
+                continue;
+            }
+
+            char next = text[i + 1];
+            char? simple = next switch
+            {
+                '"' => '"',
+                '\\' => '\\',
+                '/' => '/',
+                'b' => '\b',
+                'f' => '\f',
+                'n' => '\n',
+                'r' => '\r',
+                't' => '\t',
+                _ => null,
+            };
+            if (simple is { } escaped)
+            {
+                decoded.Append(escaped);
+                i++;
+            }
+            else if (next == 'u' && i + 5 < text.Length
+                && ushort.TryParse(text.AsSpan(i + 2, 4), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out ushort unit))
+            {
+                decoded.Append((char)unit);
+                i += 5;
+            }
+            else
+            {
+                decoded.Append(c);
+            }
+        }
+
+        return decoded.ToString();
+    }
 
     // The texts scanned for a long run of digits in a line that is valid JSON. An object's property
     // names and values are scanned separately; any other value is scanned whole.
