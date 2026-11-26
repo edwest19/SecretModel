@@ -24,33 +24,39 @@ public static class HmmModelFile
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
         {
-            writer.WriteStartObject();
-            writer.WriteString("format", Format);
-            writer.WriteNumber("version", Version);
-            writer.WriteNumber("states", model.StateCount);
-            writer.WriteNumber("symbols", model.SymbolCount);
-            writer.WritePropertyName("pi");
-            WriteRow(writer, model.InitialRow);
-            writer.WritePropertyName("a");
-            writer.WriteStartArray();
-            for (int i = 0; i < model.StateCount; i++)
-            {
-                WriteRow(writer, model.TransitionRow(i));
-            }
-
-            writer.WriteEndArray();
-            writer.WritePropertyName("b");
-            writer.WriteStartArray();
-            for (int i = 0; i < model.StateCount; i++)
-            {
-                WriteRow(writer, model.EmissionRow(i));
-            }
-
-            writer.WriteEndArray();
-            writer.WriteEndObject();
+            WriteObject(writer, model);
         }
 
         return stream.ToArray();
+    }
+
+    /// <summary>Writes the model as one JSON object, so other formats can embed it unchanged.</summary>
+    internal static void WriteObject(Utf8JsonWriter writer, HiddenMarkovModel model)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("format", Format);
+        writer.WriteNumber("version", Version);
+        writer.WriteNumber("states", model.StateCount);
+        writer.WriteNumber("symbols", model.SymbolCount);
+        writer.WritePropertyName("pi");
+        WriteRow(writer, model.InitialRow);
+        writer.WritePropertyName("a");
+        writer.WriteStartArray();
+        for (int i = 0; i < model.StateCount; i++)
+        {
+            WriteRow(writer, model.TransitionRow(i));
+        }
+
+        writer.WriteEndArray();
+        writer.WritePropertyName("b");
+        writer.WriteStartArray();
+        for (int i = 0; i < model.StateCount; i++)
+        {
+            WriteRow(writer, model.EmissionRow(i));
+        }
+
+        writer.WriteEndArray();
+        writer.WriteEndObject();
     }
 
     /// <summary>Reads a model written by <see cref="Write"/>, or any file that follows the format.</summary>
@@ -68,46 +74,51 @@ public static class HmmModelFile
 
         using (document)
         {
-            JsonElement root = document.RootElement;
-            if (root.ValueKind != JsonValueKind.Object)
-            {
-                throw new InvalidDataException("The model file must hold a JSON object.");
-            }
-
-            string[] names = [.. root.EnumerateObject().Select(p => p.Name)];
-            if (!names.SequenceEqual(PropertyOrder))
-            {
-                throw new InvalidDataException(
-                    $"The model file must have exactly these properties, in this order: {string.Join(", ", PropertyOrder)}.");
-            }
-
-            if (root.GetProperty("format").ValueKind != JsonValueKind.String || root.GetProperty("format").GetString() != Format)
-            {
-                throw new InvalidDataException($"The format must be \"{Format}\".");
-            }
-
-            if (ReadCount(root, "version") != Version)
-            {
-                throw new InvalidDataException($"Only version {Version} is supported.");
-            }
-
-            int n = ReadCount(root, "states");
-            int m = ReadCount(root, "symbols");
-            double[] pi = ReadRow(root.GetProperty("pi"), n, "pi");
-            double[,] a = ReadMatrix(root.GetProperty("a"), n, n, "a");
-            double[,] b = ReadMatrix(root.GetProperty("b"), n, m, "b");
-            try
-            {
-                return new HiddenMarkovModel(pi, a, b);
-            }
-            catch (ArgumentException e)
-            {
-                throw new InvalidDataException($"The model file holds an invalid model: {e.Message}", e);
-            }
+            return ReadObject(document.RootElement);
         }
     }
 
-    private static void WriteRow(Utf8JsonWriter writer, ReadOnlySpan<double> row)
+    /// <summary>Reads a model from one JSON object, as written by <see cref="WriteObject"/>.</summary>
+    internal static HiddenMarkovModel ReadObject(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidDataException("The model file must hold a JSON object.");
+        }
+
+        string[] names = [.. root.EnumerateObject().Select(p => p.Name)];
+        if (!names.SequenceEqual(PropertyOrder))
+        {
+            throw new InvalidDataException(
+                $"The model file must have exactly these properties, in this order: {string.Join(", ", PropertyOrder)}.");
+        }
+
+        if (root.GetProperty("format").ValueKind != JsonValueKind.String || root.GetProperty("format").GetString() != Format)
+        {
+            throw new InvalidDataException($"The format must be \"{Format}\".");
+        }
+
+        if (ReadCount(root, "version") != Version)
+        {
+            throw new InvalidDataException($"Only version {Version} is supported.");
+        }
+
+        int n = ReadCount(root, "states");
+        int m = ReadCount(root, "symbols");
+        double[] pi = ReadRow(root.GetProperty("pi"), n, "pi");
+        double[,] a = ReadMatrix(root.GetProperty("a"), n, n, "a");
+        double[,] b = ReadMatrix(root.GetProperty("b"), n, m, "b");
+        try
+        {
+            return new HiddenMarkovModel(pi, a, b);
+        }
+        catch (ArgumentException e)
+        {
+            throw new InvalidDataException($"The model file holds an invalid model: {e.Message}", e);
+        }
+    }
+
+    internal static void WriteRow(Utf8JsonWriter writer, ReadOnlySpan<double> row)
     {
         writer.WriteStartArray();
         foreach (double v in row)
@@ -118,7 +129,7 @@ public static class HmmModelFile
         writer.WriteEndArray();
     }
 
-    private static int ReadCount(JsonElement root, string name)
+    internal static int ReadCount(JsonElement root, string name)
     {
         JsonElement e = root.GetProperty(name);
         if (e.ValueKind != JsonValueKind.Number || !e.TryGetInt32(out int value) || value < 1)
@@ -129,7 +140,7 @@ public static class HmmModelFile
         return value;
     }
 
-    private static double[] ReadRow(JsonElement e, int length, string name)
+    internal static double[] ReadRow(JsonElement e, int length, string name)
     {
         if (e.ValueKind != JsonValueKind.Array || e.GetArrayLength() != length)
         {

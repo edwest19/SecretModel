@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.6 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.7 by Claude Opus 5.5, 2026-11-25. AI-generated. -->
 
 # SecretModel
 
@@ -12,9 +12,8 @@ West decides what it does and approves every merge. It is for demonstration, tes
 not production, and it never handles real card or cardholder data.
 
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
-validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6) and the scorer
-(§7). A
-requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
+(§7), and the profile file and Home-mode model store (§9). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -34,8 +33,8 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 
 | Path | What it holds |
 |---|---|
-| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring. No ASP.NET or Azure dependencies. |
-| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, storage adapters. |
+| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile file and the Home-mode model store. No ASP.NET or Azure dependencies. |
+| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, the Azure Blob model store. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
 | `docs/formats` | Locked file formats, each with a known-answer test. |
@@ -49,7 +48,7 @@ ubuntu-latest and windows-latest. A failing test or a compiler warning fails the
 
 # Requirements Specification
 
-**Version:** 0.6
+**Version:** 0.7
 **Date:** 2026-11-25
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -307,8 +306,9 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 
 ## 9. Persistence (SM-STOR)
 
-Written against an `IModelStore` abstraction. **Home mode:** a local folder. **Azure mode:** Blob
-Storage.
+Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each card has one
+**profile**: its trained model together with its likelihood history, the baseline (SM-SCORE-012).
+**Home mode:** a local folder (§9.1). **Azure mode:** Blob Storage.
 
 | ID | Requirement |
 |---|---|
@@ -318,6 +318,27 @@ Storage.
 | SM-STOR-004 | In Azure mode, two App Service instances scoring the same transaction MUST return identical results. |
 | SM-STOR-005 | A service restart MUST NOT change any score. |
 | SM-STOR-006 | `client_id` MUST be part of every storage key so SM-AUTH-006 holds at the storage layer, not just in application logic. |
+| SM-STOR-007 | A profile MUST be stored as one file in the locked format `secretmodel-profile` version 1 (`docs/formats/profile-v1.md`), which holds only observation symbols and derived model parameters, counting among those the window length and the number of transactions the profile was built from (SM-PRIV-003). A reader MUST reject a file that does not follow the format exactly. A damaged file MUST be reported, never treated as missing. |
+
+### 9.1 Home-mode store
+
+- **Path:** `{root}/{client hash}/{customer token}/{card token}.profile.json`. The client hash is the
+  SHA-256 of the `client_id`'s UTF-8 bytes, as 64 lowercase hex characters. Both tokens must pass
+  SM-PRIV-001 and be of the right kind (`tok_cus_`, `tok_card_`), so a path can't leave its folder,
+  and a rejected token is never repeated in an error.
+- **Version:** the SHA-256 of the file's bytes, as lowercase hex. A write names the version it read,
+  or none to create, and fails with a conflict when the stored version differs (SM-STOR-002).
+  Because the version comes from the content, a file put back byte for byte counts as unchanged.
+- **Writing:** a write holds an exclusive lock on `{profile}.lock`, an empty file that stays next to
+  the profile. It writes `.{random}.tmp` in the same folder and renames it over the profile, so a
+  reader sees the old profile or the new one, never part of one. A crash can leave a `.tmp` file
+  behind; it is never read.
+- **No cache** (SM-STOR-003): every read opens the file.
+
+**Tests:** `CardProfileFileTests`, `ProfileKeyTests` and `FileModelStoreTests`. The concurrency
+tests use several store objects in one process. Writers in separate processes rely on the same
+operating-system lock, but that is not tested yet. SM-STOR-004, and SM-STOR-002 in Azure mode, come
+with the Blob store.
 
 ---
 
@@ -388,6 +409,12 @@ Storage.
 ---
 
 ## 15. Revision history
+
+**v0.7 (2026-11-25)**
+- Added SM-STOR-007: the profile file, format `secretmodel-profile` version 1
+  (`docs/formats/profile-v1.md`), with the model and its likelihood history in one file.
+- Added §9.1, the Home-mode store: the path, content-hash versions, the lock file, and writing by
+  rename.
 
 **v0.6 (2026-11-25)**
 - §7 scoring, settled by measurement (§7.1). OPEN-2 resolved (feature backoff), OPEN-3 resolved (W = 1).

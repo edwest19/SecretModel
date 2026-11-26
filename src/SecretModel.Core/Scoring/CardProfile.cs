@@ -65,6 +65,71 @@ public sealed class CardProfile
     /// <summary>True if the symbol occurs anywhere in the history.</summary>
     public bool HasSeen(int symbol) => symbol >= 0 && symbol < seenSymbols.Length && seenSymbols[symbol];
 
+    /// <summary>Every symbol that occurs in the history, ascending.</summary>
+    public IReadOnlyList<int> SeenSymbols => [.. Enumerable.Range(0, seenSymbols.Length).Where(s => seenSymbols[s])];
+
+    /// <summary>
+    /// Rebuilds a profile from stored parts (<see cref="CardProfileFile"/>), checking that they fit
+    /// together. Throws <see cref="ArgumentException"/> when they don't.
+    /// </summary>
+    internal static CardProfile FromParts(
+        HiddenMarkovModel model, int windowLength, int historyLength, int[] recent, double[] stateBefore, int[] seen, double[] baseline)
+    {
+        int m = model.SymbolCount;
+        if (windowLength < 1 || historyLength < windowLength)
+        {
+            throw new ArgumentException("The window must be at least 1 and no longer than the history.");
+        }
+
+        if (recent.Length != windowLength - 1 || recent.Any(s => s < 0 || s >= m))
+        {
+            throw new ArgumentException($"There must be exactly W − 1 = {windowLength - 1} recent symbol(s), each 0 to {m - 1}.");
+        }
+
+        if (stateBefore.Length != model.StateCount || stateBefore.Any(p => !double.IsFinite(p) || p < 0)
+            || Math.Abs(stateBefore.Sum() - 1.0) > HiddenMarkovModel.RowSumTolerance)
+        {
+            throw new ArgumentException($"The state before the window must be a distribution over {model.StateCount} states.");
+        }
+
+        if (seen.Length == 0 || seen.Length > historyLength)
+        {
+            throw new ArgumentException("There must be from 1 to (history) seen symbols.");
+        }
+
+        var seenFlags = new bool[m];
+        for (int i = 0; i < seen.Length; i++)
+        {
+            if (seen[i] < 0 || seen[i] >= m || (i > 0 && seen[i] <= seen[i - 1]))
+            {
+                throw new ArgumentException($"The seen symbols must be ascending, without repeats, each 0 to {m - 1}.");
+            }
+
+            seenFlags[seen[i]] = true;
+        }
+
+        if (recent.Any(s => !seenFlags[s]))
+        {
+            throw new ArgumentException("Every recent symbol must be among the seen symbols.");
+        }
+
+        if (baseline.Length == 0 || baseline.Length > historyLength - windowLength + 1 || baseline.Any(v => !double.IsFinite(v)))
+        {
+            throw new ArgumentException("The baseline must hold 1 to (history − window + 1) finite values.");
+        }
+
+        for (int i = 1; i < baseline.Length; i++)
+        {
+            if (baseline[i] < baseline[i - 1])
+            {
+                throw new ArgumentException("The baseline must be in ascending order.");
+            }
+        }
+
+        return new CardProfile(
+            model, windowLength, (double[])baseline.Clone(), (int[])recent.Clone(), (double[])stateBefore.Clone(), seenFlags, historyLength);
+    }
+
     /// <summary>
     /// Trains the card's HMM on the older part of its journal history (oldest first, one sequence) and
     /// smooths the emissions. One forward pass over the whole history then gives
