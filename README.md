@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.12 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.13 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -15,7 +15,8 @@ not production, and it never handles real card or cardholder data.
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
 (§8.1), the Home-mode symbol history store (§9.3), Home-mode journal ingestion
-with its audit log (§8.2), and the Azure-mode history store and audit log (§9.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+with its audit log (§8.2), the Azure-mode journal source (§8.3), and the Azure-mode history store
+and audit log (§9.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -37,7 +38,7 @@ tests also need Azurite, which CI starts (§9.2).
 | Path | What it holds |
 |---|---|
 | `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, the journal file reader, and Home-mode journal ingestion (folder source, ingestor, audit log). No ASP.NET or Azure dependencies. |
-| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, and the Azure Blob model store, history store and audit log. |
+| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, and the Azure Blob model store, history store, audit log and journal source. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
 | `docs/formats` | Locked file formats, each with a known-answer test. |
@@ -52,7 +53,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.12
+**Version:** 0.13
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -385,10 +386,43 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   (`archived`, `retry`, `rejected` or `bad_name`), and the counts of records, new transactions and
   cards trained or failed, with each quarantined line's number and reason. Never transaction content.
   In Azure mode the same bytes are kept in a blob (§9.2).
-- **Not yet:** the Azure journal source (Task 8c) and running ingestion from the server (Task 9).
+- **Azure mode:** the same rules, with the journal source of §8.3.
+- **Not yet:** running ingestion from the server (Task 9).
 
 **Tests:** `JournalIngestorTests`, `FolderJournalSourceTests`, `JournalNamesTests`, `AuditFileTests`
 (including the audit format's byte-for-byte known answer) and `FileAuditLogTests`.
+
+### 8.3 Azure-mode journal source
+
+Design approved by Edwin on 2026-11-27. `SecretModel.Api.Storage.BlobJournalSource`, used by the
+same ingestor with the same rules as §8.2. **Not yet tried on real Azure** (Task 8c step 6).
+
+- **Container:** `journal`, in the storage account with the hierarchical namespace and the SFTP
+  endpoint (§1), created by the deployment; the server never creates a container.
+- **Clients kept apart:** each client has its own folder, `journal/{client id}/`, owned by that
+  client's SFTP local user, which has no container permissions and is authorized by ACLs only. A
+  client then sees and writes only its own folder: with container permissions it could reach the
+  whole container. The deployment sets this up (Task 8c step 6 has the steps).
+- **Which files:** each folder at the top of the container is a client's (§8.2 decides whether its
+  name is a client id). In it, only blobs directly inside whose names end in exactly `.jsonl`.
+  With a hierarchical namespace a directory is listed as a zero-length blob marked with the
+  metadata `hdi_isfolder`; such an entry is never read. Files are handled in name order (ordinal):
+  a hierarchical namespace lists in depth-first order, so the source sorts them itself.
+- **Versions:** each listed file carries its ETag, and reading gets exactly that version. A file
+  changed or removed after it was listed is not read: the run stops with an error that names no
+  file, and the file is read again on the next run.
+- **Moving:** Blob Storage has no rename without a further package. The version that was read is
+  written into `archive/` or `quarantine/` only if the name is free (`If-None-Match: *`; otherwise
+  the lowest free number, as in §8.2), and the original is then deleted only if it is unchanged
+  (`If-Match`). If the client replaced or removed it in between, the copy of what was read stays,
+  and a replacement is read on the next run. Nothing is overwritten.
+- **Links:** the SFTP endpoint doesn't support symbolic links, so §8.2's link rules have nothing to
+  act on in Azure mode.
+
+**Tests:** `BlobJournalSourceTests`, against Azurite (§9.2), including four runs of the ingestor
+with this source and the Azure-mode stores. Azurite has no hierarchical namespace: directory
+entries are imitated there with the metadata, and listing order and SFTP access between clients
+are not tested yet.
 
 ---
 
@@ -561,6 +595,11 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.13 (2026-11-27)**
+- Added §8.3, the Azure-mode journal source: one `journal` container, a folder per client owned by
+  that client's SFTP local user, versions by ETag, and moves as a copy written only if its name is
+  free followed by a delete only if unchanged. Design approved by Edwin.
 
 **v0.12 (2026-11-27)**
 - §9.2: the Azure-mode history store and audit log, design approved by Edwin.

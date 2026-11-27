@@ -1,12 +1,14 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27. AI-generated. Version added
+// the same day for the Azure-mode source (Task 8c-2).
 
 namespace SecretModel.Core.Journal;
 
 /// <summary>
 /// A journal file waiting to be ingested: the client folder it is in and its name, both exactly as
-/// the source found them. <see cref="JournalIngestor"/> checks both names before trusting them.
+/// the source found them, and its version where the source has one (a blob's ETag in Azure mode;
+/// null in Home mode). <see cref="JournalIngestor"/> checks both names before trusting them.
 /// </summary>
-public sealed record JournalFileRef(string ClientId, string Name);
+public sealed record JournalFileRef(string ClientId, string Name, string? Version = null);
 
 /// <summary>Where in its client's folder a handled journal file goes (README §8.2).</summary>
 public enum JournalFolder
@@ -19,7 +21,8 @@ public enum JournalFolder
 }
 
 /// <summary>
-/// Where journal files arrive (README §8): a local folder in Home mode. Each client has a folder of
+/// Where journal files arrive (README §8): a local folder in Home mode, a Blob container in Azure
+/// mode. Each client has a folder of
 /// its own, named by its client id; the client of a file comes from that folder, never from the file
 /// (README SM-AUTH-003). Holds no state between calls.
 /// </summary>

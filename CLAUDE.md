@@ -35,7 +35,7 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
   and `FileHistoryStore`, the journal file reader, and Home-mode ingestion (`FolderJournalSource`,
   `JournalIngestor`, `FileAuditLog`). No ASP.NET, no Azure.
 - `src/SecretModel.Api`: ASP.NET Core host, certificate authentication, the Azure Blob model store,
-  history store and audit log.
+  history store, audit log and journal source.
 - `tests/SecretModel.Tests`: MSTest tests.
 - `tools/SecretModel.Synthetic`: synthetic shoppers and anomalies (made-up data) for tests, the study and the harness.
 - `tools/azurite`: the pinned Azurite emulator (`package.json`, `package-lock.json`) and `wait-for-port.mjs`, for the Blob store tests only.
