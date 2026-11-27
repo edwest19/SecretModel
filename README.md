@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.14 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.15 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -15,8 +15,9 @@ not production, and it never handles real card or cardholder data.
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
 (§8.1), the Home-mode symbol history store (§9.3), Home-mode journal ingestion
-with its audit log (§8.2), the Azure-mode journal source (§8.3), and the Azure-mode history store
-and audit log (§9.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+with its audit log (§8.2), the Azure-mode journal source (§8.3), the Azure-mode history store
+and audit log (§9.2), and the Home-mode server's host and certificate login (§3.1). Not built yet:
+the scoring endpoint and the server's ingestion loop. A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -38,13 +39,14 @@ tests also need Azurite, which CI starts (§9.2).
 | Path | What it holds |
 |---|---|
 | `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, the journal file reader, and Home-mode journal ingestion (folder source, ingestor, audit log). No ASP.NET or Azure dependencies. |
-| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, and the Azure Blob model store, history store, audit log and journal source. |
+| `src/SecretModel.Api` | ASP.NET Core host: the Home-mode server and its client-certificate login (§3.1), and the Azure Blob model store, history store, audit log and journal source. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
 | `docs/formats` | Locked file formats, each with a known-answer test. |
 | `tools/golden` | Produces the tests' golden vectors: by running the Python reference, or by exhaustive exact computation. |
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 | `tools/SecretModel.Synthetic` | Synthetic shoppers and injected anomalies, for tests, the study and the harness. |
+| `tools/SecretModel.TestCerts` | Makes test certificates for the Home-mode server with .NET's own APIs (§3.1). |
 | `tools/SecretModel.AzureCheck` | Checks the Azure-mode stores and journal source against a real storage account (§8.3; `docs/azure/storage-setup.md`). |
 | `tools/SecretModel.ScoringStudy` | The measurement behind §7.1. |
 | `tools/azurite` | Azurite, Microsoft's Blob Storage emulator, pinned for the tests only (§9.2). |
@@ -54,7 +56,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.14
+**Version:** 0.15
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -142,7 +144,7 @@ persisted model type exposes no field outside the SM-PRIV-003 allowlist; a log-c
 | SM-AUTH-005 | A request with no client certificate MUST be rejected with 401. |
 | SM-AUTH-006 | **Tenant isolation.** Client A MUST NOT train, score, read, or enumerate any model belonging to client B, even when both present an identical `card_token`. |
 | SM-AUTH-007 | App Service MUST be configured `clientCertEnabled=true`, `clientCertMode=Required`, with `clientCertExclusionPaths` covering only `/health`. |
-| SM-AUTH-008 | In Home mode, Kestrel MUST require a client certificate during the TLS handshake, and the certificate MUST pass SM-AUTH-002. |
+| SM-AUTH-008 | In Home mode, Kestrel MUST ask for a client certificate during the TLS handshake and allow a connection without one, so `/health` works and other requests get 401. Only a certificate presented in the handshake counts, and it MUST pass SM-AUTH-002. |
 | SM-AUTH-009 | In Home mode, the service MUST ignore `X-ARR-ClientCert` entirely. A request whose only certificate is in that header MUST be rejected exactly as if it carried no certificate. |
 | SM-AUTH-010 | The run mode MUST come from configuration only, never from a request. An absent or unrecognized mode MUST start in Home mode, which never trusts the header. |
 | SM-AUTH-011 | In Azure mode, a request that presents certificate X in the TLS handshake and an `X-ARR-ClientCert` header for a different, allowlisted certificate Y MUST be rejected or authenticated as X, never as Y. Verified against a deployed App Service. See OPEN-5. |
@@ -151,6 +153,76 @@ persisted model type exposes no field outside the SM-PRIV-003 allowlist; a log-c
 sends a valid-looking public certificate with no proof of possession and asserts 403; a
 cross-tenant test where two clients train the same card token and each sees only its own model; a
 Home-mode test proving the header is ignored.
+
+### 3.1 Home-mode server
+
+The Home-mode server runs from a PowerShell window:
+
+```powershell
+dotnet run -c Release --project src/SecretModel.Api --no-launch-profile
+```
+
+`--no-launch-profile` keeps the template's launch profile from setting other addresses. The server
+always runs as `Production`, so no page ever shows exception details.
+
+**Settings**, in the `SecretModel` section:
+
+| Setting | Meaning |
+|---|---|
+| `Mode` | `Home`. Absent or unrecognized also means Home (SM-AUTH-010). `Azure`, in any case, stops the server: Azure mode is not built yet. |
+| `Url` | `https://localhost:7443` by default. An `https` address with no path, whose host is `localhost` or an IP address. `0.0.0.0` listens on every address of the computer. |
+| `ServerCertificate` | Path of the server's `.pfx`. Its password comes from the environment variable `SECRETMODEL_CERT_PASSWORD`, never from a file. |
+| `ClientCertificateAuthority` | Path of the `.cer` of the authority that issues the client certificates. |
+| `AllowedClientThumbprints` | The SHA-256 thumbprints (64 hex characters, any case) of the client certificates let in. At least one. |
+
+The committed `appsettings.json` holds no secrets and no paths. The real values go in a JSON file
+outside the repository, named by the environment variable `SECRETMODEL_SETTINGS`; environment
+variables such as `SecretModel__Url` override both. Every setting is checked before the server
+starts. A wrong one stops it with a message that names the setting and never shows the password.
+
+**Certificates.** `tools/SecretModel.TestCerts` makes a test set with .NET's own APIs, no packages:
+
+```powershell
+dotnet run -c Release --project tools/SecretModel.TestCerts -- <folder> [client id ...]
+```
+
+Into a new or empty folder outside any git repository, it writes `ca.cer` (the test authority),
+`server.pfx` (for `localhost`, `127.0.0.1`, `::1` and the computer's name), and `<client id>.pfx`
+and `<client id>.cer` for each client (`client-a` and `client-b` if none are given), then prints
+their SHA-256 thumbprints. RSA 2048 with SHA-256, valid for a year. The `.pfx` files use the
+password in `SECRETMODEL_CERT_PASSWORD`. The authority's private key is not kept, so more
+certificates means a new set. A client trusts the server by pinning its thumbprint, so the test
+authority is never added to Windows' trusted roots.
+
+**Login.** Kestrel asks for a client certificate during the TLS handshake, and the handshake
+finishes with or without one, so the server answers with a status code instead of dropping the
+connection. (Measured on .NET 10.0.15: with `AllowCertificate` and no validation callback, a
+certificate that doesn't chain to a trusted root ends the connection.) Then, for every path except
+`/health`:
+
+1. No certificate from the handshake: 401 `{"error":"certificate_required"}` (SM-AUTH-005). The
+   `X-ARR-ClientCert` header is never read (SM-AUTH-009).
+2. The checks of SM-AUTH-002, in this order. The first that fails gives 403
+   `{"error":"certificate_not_accepted"}`.
+   - Its SHA-256 thumbprint is on the allowlist.
+   - It chains to the configured authority, which is the only root trusted (not the computer's
+     trusted roots), and it is not the authority itself. No revocation check, because the test
+     authority publishes no revocation list, and no network calls.
+   - The time now is within its `NotBefore` and `NotAfter`, both included, and within the
+     authority's.
+   - Its subject has exactly one CN, in a name of its own, and the CN is a client id (§8.2). That CN
+     is the client id (SM-AUTH-003).
+
+   *Well-formed X.509:* the TLS layer parses the certificate before any of these checks, and one
+   that doesn't parse ends the handshake, so the server never sees it. There is no separate check,
+   because it could not change any answer.
+3. A certificate that fails is logged as one warning with the reason and its SHA-256 thumbprint,
+   never its subject: a CN that breaks the rules may hold a card number.
+
+**Answers.** `GET /health` is 200 `{"status":"ok"}`, with or without a certificate (SM-OPS-001).
+After login, an unknown path is 404 `{"error":"not_found"}` and a wrong method is 405
+`{"error":"method_not_allowed"}`. No error answer repeats what the client sent (SM-PRIV-004), and
+there is no `Server` header. Logs go to the console; `Microsoft.*` logs only warnings and errors.
 
 ---
 
@@ -550,7 +622,7 @@ stores and checks that every stored byte is the same.
 | SM-PS-001 | Generate a synthetic tokenized journal for N cards with configurable habitual patterns and injected anomalies. |
 | SM-PS-002 | Place the journal in the landing zone and wait for ingestion to complete. |
 | SM-PS-003 | Score a set of transactions using a client certificate and assert expected verdicts. |
-| SM-PS-004 | Negative suite: no cert → 401; unlisted cert → 403; forged `X-ARR-ClientCert` → 403 (Azure) or 401 (Home); raw PAN → 400; `tok_`-prefixed PAN → 400; cross-tenant card token → 404 or 403. |
+| SM-PS-004 | Negative suite: no cert → 401; unlisted cert → 403; forged `X-ARR-ClientCert` → 403 (Azure) or 401 (Home); raw PAN → 400; `tok_`-prefixed PAN → 400; a cross-tenant card token gets cold-start `REVIEW` (200), the same answer as a card this client has never trained, never the other client's model. |
 | SM-PS-005 | Emit a pass/fail summary and exit non-zero on any failed assertion, so CI can consume it. |
 | SM-PS-006 | Scripts MUST be runnable against a Home-mode instance as well as a deployed App Service. |
 
@@ -600,6 +672,15 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.15 (2026-11-27)**
+- Added §3.1, the Home-mode server: its settings, the test certificates
+  (`tools/SecretModel.TestCerts`), the certificate checks and the answers. Design approved by Edwin.
+- SM-AUTH-008 now says Kestrel asks for a client certificate and allows a connection without one, so
+  `/health` works and other requests get 401. Approved by Edwin.
+- SM-PS-004: a cross-tenant card token gets cold-start `REVIEW` (200), never the other client's
+  model. Approved by Edwin.
+- SM-AUTH-001, -002, -005, -008, -009, -010, SM-OPS-001 and -002 are tested.
 
 **v0.14 (2026-11-27)**
 - Added the Azure storage setup steps (`docs/azure/storage-setup.md`) and the check program
