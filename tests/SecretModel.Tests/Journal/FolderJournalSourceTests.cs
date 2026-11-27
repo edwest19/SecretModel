@@ -63,6 +63,22 @@ public sealed class FolderJournalSourceTests
     }
 
     [TestMethod]
+    [TestCategory("SM-AUTH-006")]
+    public async Task List_NeverGivesALink_EvenOneToAnotherClientsFile()
+    {
+        string theirs = Put("client-b/secret.jsonl");
+        Put("client-a/real.jsonl");
+        File.CreateSymbolicLink(Path.Combine(root, "client-a", "day1.jsonl"), theirs);
+        File.CreateSymbolicLink(Path.Combine(root, "client-a", "day2.jsonl"), Path.Combine("..", "client-b", "secret.jsonl"));
+
+        IReadOnlyList<JournalFileRef> files = await new FolderJournalSource(root).ListAsync();
+
+        CollectionAssert.AreEqual(
+            new[] { new JournalFileRef("client-a", "real.jsonl"), new JournalFileRef("client-b", "secret.jsonl") },
+            files.ToArray());
+    }
+
+    [TestMethod]
     [TestCategory("SM-JRNL-006")]
     public async Task Move_CreatesTheFolder_AndMovesTheFileUnchanged()
     {

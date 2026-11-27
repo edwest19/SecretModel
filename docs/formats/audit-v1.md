@@ -1,4 +1,4 @@
-<!-- Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the audit log approved by Edwin West on 2026-11-26 (design B). The exact properties and their order are Claude's draft, still to be approved. AI-generated. -->
+<!-- Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the audit log approved by Edwin West on 2026-11-26 (design B); the exact properties and their order approved 2026-11-27. AI-generated. -->
 
 # Ingestion audit log, format `secretmodel-audit` version 1
 

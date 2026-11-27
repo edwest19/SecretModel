@@ -1,9 +1,9 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27. AI-generated.
 //
-// Tests for the journal name rules (README §8.2, approved by Edwin West on 2026-11-26): a client id
-// is its folder's name (README SM-AUTH-003: the client never comes from the file), and a journal
-// file's name may not hold a run of 13 digits (SM-PRIV-002), so the audit log can record it
-// (SM-JRNL-008). 4111111111111111 is the published Visa test number, used only as an input that must
+// Tests for the journal name rules (README §8.2, approved by Edwin West on 2026-11-26 and 27): a
+// client id is its folder's name (README SM-AUTH-003: the client never comes from the file), and
+// neither a client id nor a journal file's name may hold a run of 13 digits (SM-PRIV-002), so the
+// audit log can record the name (SM-JRNL-008). 4111111111111111 is the published Visa test number, used only as an input that must
 // be refused.
 
 using SecretModel.Core.Journal;
@@ -45,6 +45,28 @@ public sealed class JournalNamesTests
     public void ClientIds_ThatBreakTheRule_AreInvalid(string? value)
     {
         Assert.IsFalse(JournalNames.IsValidClientId(value));
+    }
+
+    [TestMethod]
+    [TestCategory("SM-AUTH-003")]
+    [TestCategory("SM-PRIV-002")]
+    [DataRow("1234567890123")]                   // 13 digits in a row
+    [DataRow("4111111111111111")]
+    [DataRow("4111.1111.1111.1111")]             // dots, dashes and underscores between digits are ignored
+    [DataRow("4111-1111-1111-1111")]
+    [DataRow("client_4111111111111111")]
+    public void ClientIds_WithARunOf13Digits_AreInvalid(string value)
+    {
+        Assert.IsFalse(JournalNames.IsValidClientId(value));
+    }
+
+    [TestMethod]
+    [TestCategory("SM-AUTH-003")]
+    [DataRow("123456789012")]                    // 12 digits in a row
+    [DataRow("123456.789012")]
+    public void ClientIds_With12DigitsInARow_AreValid(string value)
+    {
+        Assert.IsTrue(JournalNames.IsValidClientId(value));
     }
 
     [TestMethod]

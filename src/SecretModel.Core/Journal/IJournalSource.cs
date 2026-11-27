@@ -28,7 +28,7 @@ public interface IJournalSource
     /// <summary>
     /// Every file directly inside a client folder whose name ends in <see cref="JournalNames.Extension"/>,
     /// ordered by folder name and then file name (ordinal). Nothing in <c>archive/</c> or
-    /// <c>quarantine/</c> is listed.
+    /// <c>quarantine/</c> is listed, and no link.
     /// </summary>
     Task<IReadOnlyList<JournalFileRef>> ListAsync(CancellationToken cancellationToken = default);
 

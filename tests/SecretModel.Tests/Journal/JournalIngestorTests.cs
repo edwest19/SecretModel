@@ -613,6 +613,7 @@ public sealed class JournalIngestorTests
     [DataRow("_x")]
     [DataRow("bad name")]
     [DataRow("café")]
+    [DataRow("4111111111111111")]
     public async Task AFolderWhoseNameIsNotAClientId_IsLeftAlone(string folder)
     {
         string landed = Drop("day1.jsonl", JournalText(Line(0)), folder);
@@ -622,5 +623,24 @@ public sealed class JournalIngestorTests
         Assert.IsTrue(File.Exists(landed));
         Assert.IsEmpty(Directory.GetFileSystemEntries(modelRoot));
         Assert.HasCount(1, Directory.GetFileSystemEntries(Path.Combine(journalRoot, folder)));
+    }
+
+    [TestMethod]
+    [TestCategory("SM-AUTH-006")]
+    public async Task ALinkToAnotherClientsFile_IsLeftAlone()
+    {
+        string content = JournalText(Lines(Enumerable.Range(0, 14)));
+        Drop("day1.jsonl", content, "client-b");
+        await Ingestor().RunAsync();
+        string link = Path.Combine(journalRoot, "client-a", "day1.jsonl");
+        Directory.CreateDirectory(Path.GetDirectoryName(link)!);
+        File.CreateSymbolicLink(link, Archived("day1.jsonl", "client-b"));
+
+        Assert.IsEmpty(await Ingestor().RunAsync());
+
+        Assert.IsNull(await HistoryOf(Key(client: "client-a")), "Client A must not train on client B's transactions.");
+        Assert.IsFalse(File.Exists(new FileAuditLog(modelRoot).PathFor("client-a")));
+        Assert.IsNotNull(new FileInfo(link).LinkTarget, "The link is left where it is.");
+        Assert.AreEqual(content, File.ReadAllText(Archived("day1.jsonl", "client-b")));
     }
 }

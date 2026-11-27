@@ -118,7 +118,7 @@ enabled for both `journal/` and `models/`. Its SFTP endpoint bills hourly while 
 |---|---|
 | SM-PRIV-001 | The server MUST reject any token that does not match `^tok_(cus\|card\|txn\|merch)_[0-9a-f]{24}$` as a whole value. A trailing newline is not allowed (in .NET, `$` would allow one, so the code uses `\z`). Prefix-only checking is insufficient. |
 | SM-PRIV-002 | A value that fails SM-PRIV-001 MUST be treated as possibly carrying a card number when, ignoring every character that is not a letter or digit, it contains 13 or more consecutive decimal digits in any script. It is rejected like any malformed token and handled as personal data (SM-PRIV-004, SM-PRIV-005, SM-JRNL-005). **This closes the `tok_4111111111111111` bypass confirmed in the prototype**, and also catches `tok_card_4111…`, dots, slashes, no-break or zero-width spaces between digits, and full-width digits. |
-| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, sequence numbers (journal `seq`, at most 12 digits), timestamp buckets, country codes, merchant category codes, and derived model parameters. |
+| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, sequence numbers (journal `seq`, at most 12 digits), timestamp buckets, country codes, merchant category codes, and derived model parameters; and, in the ingestion audit log (SM-JRNL-008), file names that follow §8.2, file SHA-256 hashes, times, counts, line numbers and reasons. |
 | SM-PRIV-004 | Rejection responses MUST NOT echo the rejected value in the body, headers, or logs. |
 | SM-PRIV-005 | No log statement at any level MAY emit a field that failed SM-PRIV-002. |
 | SM-PRIV-006 | No identifier in the server source (`src/`) MAY name a PAN-bearing concept (`pan`, `card_number`, `cardholder`, `cvv`, `expiry`). Enforced by a test that splits identifiers into words (`cardNumber` → `card`, `number`) and fails on a forbidden word. A raw substring search is not acceptable, because it matches `Span` and `expand`. |
@@ -333,7 +333,7 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 
 ### 8.2 Home-mode ingestion
 
-Folders, names and rules approved by Edwin on 2026-11-26. `SecretModel.Core.Journal.JournalIngestor`
+Folders, names and rules approved by Edwin on 2026-11-26 and 2026-11-27. `SecretModel.Core.Journal.JournalIngestor`
 works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
 
 - **Folders:** each client has its own journal folder, `{journal root}/{client id}/`, and places its
@@ -341,10 +341,12 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   needs them. The histories, the profiles and the audit log stay under the model root (§9), which
   only the server uses.
 - **Client id:** the folder's name, 1 to 64 ASCII letters, digits, `.`, `_` or `-`, starting with a
-  letter or digit. Task 9 will hold certificate CNs to the same rule (SM-AUTH-003). A folder with
-  any other name is not a client, and its files are left alone.
+  letter or digit, with no run of 13 digits (SM-PRIV-002). Task 9 will hold certificate CNs to the
+  same rule (SM-AUTH-003). A folder with any other name is not a client, and its files are left alone.
 - **Which files:** only files directly in a client folder whose names end in exactly `.jsonl`. A
-  client uploads under another name and renames the file when it is complete.
+  client uploads under another name and renames the file when it is complete. A symbolic link is
+  never read, even one named `*.jsonl`, because it could point at another client's file
+  (SM-AUTH-006); it is left where it is.
 - **File name:** 1 to 100 characters by the client-id rule, then `.jsonl`, with no run of 13 digits
   (SM-PRIV-002, which ignores the dots, dashes and underscores between digits). A file with any other
   name moves to `quarantine/`, unread, renamed as its SHA-256 followed by `.jsonl`, and the audit log
@@ -366,7 +368,8 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   history, oldest `seq` first, and its profile replaced. With fewer, its history is kept and it stays
   cold-start (SM-SCORE-005), so a card with fewer than 10 is never trained.
 - **Archive and retry** (SM-JRNL-006): when every card was saved, the file moves to `archive/`
-  unchanged. When a card could not be saved (a damaged stored file, a lost write race, a disk error),
+  unchanged. The archive keeps the whole file, quarantined lines included, so whatever a client puts
+  in a line that breaks the format (an unknown property, say) is kept there as written. When a card could not be saved (a damaged stored file, a lost write race, a disk error),
   the file stays where it is and the next run reads it again. What was saved the first time is then
   already stored and is skipped, and a history saved without its profile gets its profile built,
   because the profile's transaction count differs from the history's.
@@ -541,6 +544,10 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 - Added §8.2, Home-mode journal ingestion: the client folders, the name rules, grouping and merging
   by `seq`, `SeqConflict`, training from 14 transactions, archive, quarantine and retry.
 - Added the audit log, format `secretmodel-audit` version 1 (`docs/formats/audit-v1.md`).
+- SM-PRIV-003 now allows what the audit log holds: file names that follow §8.2, file hashes, times,
+  counts, line numbers and reasons. Approved by Edwin.
+- A client id may not hold a run of 13 digits, and symbolic links in a client folder are never
+  read. Approved by Edwin.
 - SM-JRNL-003, -004, -006, -007 and -008 are tested.
 
 **v0.10 (2026-11-26)**

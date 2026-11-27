@@ -1,5 +1,6 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the name rules approved by
-// Edwin West on 2026-11-26 (design D). AI-generated.
+// Edwin West on 2026-11-26 (design D), with the no-13-digits rule for client ids approved 2026-11-27.
+// AI-generated.
 
 using SecretModel.Core.Privacy;
 
@@ -22,10 +23,10 @@ public static class JournalNames
 
     /// <summary>
     /// A client id: 1 to 64 ASCII letters, digits, <c>.</c>, <c>_</c> or <c>-</c>, starting with a
-    /// letter or digit.
+    /// letter or digit, with no run of 13 digits (README SM-PRIV-002).
     /// </summary>
     public static bool IsValidClientId(string? value) =>
-        value is { Length: >= 1 and <= MaxClientIdLength } && IsPlainName(value);
+        value is { Length: >= 1 and <= MaxClientIdLength } && IsPlainName(value) && !TokenValidator.HasLongDigitRun(value);
 
     /// <summary>
     /// A journal file name: 1 to 100 characters by the client-id rule, then <c>.jsonl</c>, with no run
