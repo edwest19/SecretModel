@@ -1,4 +1,5 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated. ClientHashOf
+// split out 2026-11-27 so the audit log shares it.
 
 using System.Security.Cryptography;
 using System.Text;
@@ -16,10 +17,7 @@ public sealed record ProfileKey
 {
     public ProfileKey(string clientId, string customerToken, string cardToken)
     {
-        if (string.IsNullOrWhiteSpace(clientId))
-        {
-            throw new ArgumentException("The client id must not be empty.", nameof(clientId));
-        }
+        string clientHash = ClientHashOf(clientId);
 
         // Messages never repeat a rejected value: it could be a card number (SM-PRIV-004).
         if (!TokenValidator.IsValid(customerToken) || !customerToken.StartsWith("tok_cus_", StringComparison.Ordinal))
@@ -35,7 +33,21 @@ public sealed record ProfileKey
         ClientId = clientId;
         CustomerToken = customerToken;
         CardToken = cardToken;
-        ClientHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(clientId)));
+        ClientHash = clientHash;
+    }
+
+    /// <summary>
+    /// SHA-256 of a client id's UTF-8 bytes, 64 lowercase hex characters: the client's folder in every
+    /// store (SM-STOR-001, SM-STOR-006). The client id must not be empty.
+    /// </summary>
+    public static string ClientHashOf(string clientId)
+    {
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            throw new ArgumentException("The client id must not be empty.", nameof(clientId));
+        }
+
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(clientId)));
     }
 
     public string ClientId { get; }

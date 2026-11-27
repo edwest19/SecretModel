@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.10 by Claude Opus 5.5, 2026-11-25 to 2026-11-26. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.11 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -14,7 +14,8 @@ not production, and it never handles real card or cardholder data.
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
-(§8.1), and the Home-mode symbol history store (§9.3). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+(§8.1), the Home-mode symbol history store (§9.3), and Home-mode journal ingestion
+with its audit log (§8.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -35,7 +36,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 | Path | What it holds |
 |---|---|
-| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, and the journal file reader. No ASP.NET or Azure dependencies. |
+| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, the journal file reader, and Home-mode journal ingestion (folder source, ingestor, audit log). No ASP.NET or Azure dependencies. |
 | `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, the Azure Blob model store. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
@@ -51,8 +52,8 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.10
-**Date:** 2026-11-26
+**Version:** 0.11
+**Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
 
@@ -117,7 +118,7 @@ enabled for both `journal/` and `models/`. Its SFTP endpoint bills hourly while 
 |---|---|
 | SM-PRIV-001 | The server MUST reject any token that does not match `^tok_(cus\|card\|txn\|merch)_[0-9a-f]{24}$` as a whole value. A trailing newline is not allowed (in .NET, `$` would allow one, so the code uses `\z`). Prefix-only checking is insufficient. |
 | SM-PRIV-002 | A value that fails SM-PRIV-001 MUST be treated as possibly carrying a card number when, ignoring every character that is not a letter or digit, it contains 13 or more consecutive decimal digits in any script. It is rejected like any malformed token and handled as personal data (SM-PRIV-004, SM-PRIV-005, SM-JRNL-005). **This closes the `tok_4111111111111111` bypass confirmed in the prototype**, and also catches `tok_card_4111…`, dots, slashes, no-break or zero-width spaces between digits, and full-width digits. |
-| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, sequence numbers (journal `seq`, at most 12 digits), timestamp buckets, country codes, merchant category codes, and derived model parameters. |
+| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, sequence numbers (journal `seq`, at most 12 digits), timestamp buckets, country codes, merchant category codes, and derived model parameters; and, in the ingestion audit log (SM-JRNL-008), file names that follow §8.2, file SHA-256 hashes, times, counts, line numbers and reasons. |
 | SM-PRIV-004 | Rejection responses MUST NOT echo the rejected value in the body, headers, or logs. |
 | SM-PRIV-005 | No log statement at any level MAY emit a field that failed SM-PRIV-002. |
 | SM-PRIV-006 | No identifier in the server source (`src/`) MAY name a PAN-bearing concept (`pan`, `card_number`, `cardholder`, `cvv`, `expiry`). Enforced by a test that splits identifiers into words (`cardNumber` → `card`, `number`) and fails on a forbidden word. A raw substring search is not acceptable, because it matches `Span` and `expand`. |
@@ -326,11 +327,67 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
   So a malformed line that holds a well-formed token rejects the file if the token happens to have
   13 decimal digits in a row: for a random token that chance is 1.138%, and 3.375% for a line with
   three tokens (computed exactly, and matched by a simulation of 1,000,000 tokens: 1.150%).
-- **Not yet:** grouping, ordering, training, idempotency, archiving and the audit entry
-  (SM-JRNL-003, -004, -006, -007, -008) come with Home-mode ingestion; the Azure journal source
-  comes with the Azure deployment.
+- **Ingestion** (grouping, ordering, training, idempotency, archiving and the audit entry) is §8.2.
 
 **Tests:** `JournalFileTests`, including the format's byte-for-byte known answer.
+
+### 8.2 Home-mode ingestion
+
+Folders, names and rules approved by Edwin on 2026-11-26 and 2026-11-27. `SecretModel.Core.Journal.JournalIngestor`
+works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
+
+- **Folders:** each client has its own journal folder, `{journal root}/{client id}/`, and places its
+  files there by any means. The server adds `archive/` and `quarantine/` inside it when it first
+  needs them. The histories, the profiles and the audit log stay under the model root (§9), which
+  only the server uses.
+- **Client id:** the folder's name, 1 to 64 ASCII letters, digits, `.`, `_` or `-`, starting with a
+  letter or digit, with no run of 13 digits (SM-PRIV-002). Task 9 will hold certificate CNs to the
+  same rule (SM-AUTH-003). A folder with any other name is not a client, and its files are left alone.
+- **Which files:** only files directly in a client folder whose names end in exactly `.jsonl`. A
+  client uploads under another name and renames the file when it is complete. A symbolic link is
+  never read, even one named `*.jsonl`, because it could point at another client's file
+  (SM-AUTH-006); it is left where it is.
+- **File name:** 1 to 100 characters by the client-id rule, then `.jsonl`, with no run of 13 digits
+  (SM-PRIV-002, which ignores the dots, dashes and underscores between digits). A file with any other
+  name moves to `quarantine/`, unread, renamed as its SHA-256 followed by `.jsonl`, and the audit log
+  records no name.
+- **Order:** one run handles every waiting file once, by client folder and then by file name
+  (ordinal). Only one run may go at a time: the ingestor takes no lock of its own, so the server that
+  runs it (Task 9) must not start a run while another is going.
+- **Rejected file** (SM-JRNL-005): it moves to `quarantine/` unchanged and nothing from it is used.
+  **It then holds what may be a card number.** The server never reads it again; it must be deleted by
+  hand.
+- **Grouping and order** (SM-JRNL-004): a file's records are grouped by (client, customer token, card
+  token) and merged with each card's stored history (§9.3) in `seq` order.
+- **Idempotency** (SM-JRNL-003): a `seq` the card already has, with the same symbol, counts once, so a
+  file sent again changes nothing. The same `seq` with a different symbol quarantines those lines as
+  `SeqConflict`, and what is stored stays. When lines of one file give a new `seq` different symbols,
+  all of them are `SeqConflict`, because nothing says which one is right.
+- **Training** (SM-JRNL-007): a card with at least 14 transactions in its history (the least the
+  default options can build a profile from, `CardProfile.MinimumHistoryFor`) is retrained on its whole
+  history, oldest `seq` first, and its profile replaced. With fewer, its history is kept and it stays
+  cold-start (SM-SCORE-005), so a card with fewer than 10 is never trained.
+- **Archive and retry** (SM-JRNL-006): when every card was saved, the file moves to `archive/`
+  unchanged. The archive keeps the whole file, quarantined lines included, so whatever a client puts
+  in a line that breaks the format (an unknown property, say) is kept there as written. When a card could not be saved (a damaged stored file, a lost write race, a disk error),
+  the file stays where it is and the next run reads it again. What was saved the first time is then
+  already stored and is skipped, and a history saved without its profile gets its profile built,
+  because the profile's transaction count differs from the history's.
+- **Names already taken:** if `archive/` or `quarantine/` already holds a name, the file gets the
+  lowest free number before `.jsonl` (`day1.1.jsonl`, `day1.2.jsonl`, …). Nothing is overwritten.
+- **Linked folders** (SM-AUTH-006): if a client's `archive/` or `quarantine/` is a link, which could
+  point at another client's folder, nothing is moved into it. The run stops with an error that names
+  no file, and the file stays where it is. Hard links cannot be told from ordinary files this way;
+  keeping clients from making them is left to how the SFTP server is set up.
+- **Audit log** (SM-JRNL-008): `{model root}/{client hash}/audit.jsonl`, in the locked format
+  `secretmodel-audit` version 1 (`docs/formats/audit-v1.md`). One line is added for every file a run
+  handles, a file kept for retry included: the time, the file's name and SHA-256, the outcome
+  (`archived`, `retry`, `rejected` or `bad_name`), and the counts of records, new transactions and
+  cards trained or failed, with each quarantined line's number and reason. Never transaction content.
+- **Not yet:** the Azure journal source (Task 8c) and running ingestion from the server (Task 9).
+
+**Tests:** `JournalIngestorTests`, `FolderJournalSourceTests`, `JournalNamesTests`, `AuditFileTests`
+(including the audit format's byte-for-byte known answer) and `FileAuditLogTests`.
 
 ---
 
@@ -486,6 +543,16 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 ---
 
 ## 15. Revision history
+
+**v0.11 (2026-11-27)**
+- Added §8.2, Home-mode journal ingestion: the client folders, the name rules, grouping and merging
+  by `seq`, `SeqConflict`, training from 14 transactions, archive, quarantine and retry.
+- Added the audit log, format `secretmodel-audit` version 1 (`docs/formats/audit-v1.md`).
+- SM-PRIV-003 now allows what the audit log holds: file names that follow §8.2, file hashes, times,
+  counts, line numbers and reasons. Approved by Edwin.
+- A client id may not hold a run of 13 digits, symbolic links in a client folder are never read,
+  and nothing is moved into an `archive/` or `quarantine/` that is a link. Approved by Edwin.
+- SM-JRNL-003, -004, -006, -007 and -008 are tested.
 
 **v0.10 (2026-11-26)**
 - Added §9.3 and SM-STOR-008, each card's symbol history: format `secretmodel-history` version 1

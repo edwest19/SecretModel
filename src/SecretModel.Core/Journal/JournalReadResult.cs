@@ -1,10 +1,13 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-26. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-26. AI-generated. SeqConflict
+// added 2026-11-27 for journal ingestion.
 
 namespace SecretModel.Core.Journal;
 
 /// <summary>
 /// Why a journal line was quarantined (README SM-JRNL-002). The reader checks a line in the order
-/// of this list and reports the first reason that applies (docs/formats/journal-v1.md).
+/// of this list, up to <see cref="InvalidIsOnline"/>, and reports the first reason that applies
+/// (docs/formats/journal-v1.md). <see cref="SeqConflict"/> comes last because only ingestion can
+/// tell it: it needs the card's stored history.
 /// </summary>
 public enum JournalQuarantineReason
 {
@@ -52,6 +55,13 @@ public enum JournalQuarantineReason
 
     /// <summary><c>is_online</c> is not <c>true</c> or <c>false</c>.</summary>
     InvalidIsOnline,
+
+    /// <summary>
+    /// The card already has this <c>seq</c>, or other lines in the same file give it, with a different
+    /// symbol. Never returned by <see cref="JournalFile.Read"/>; <see cref="JournalIngestor"/> gives it.
+    /// What is stored stays.
+    /// </summary>
+    SeqConflict,
 }
 
 /// <summary>A quarantined line: its number and the reason, never its content (README SM-PRIV-004).</summary>
