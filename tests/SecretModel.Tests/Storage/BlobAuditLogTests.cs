@@ -113,14 +113,21 @@ public sealed class BlobAuditLogTests
 
     [TestMethod]
     [TestCategory("SM-JRNL-008")]
-    public async Task AMissingContainer_IsAnError()
+    public async Task AMissingContainer_IsAnError_ReportedByTheRead_BeforeAnyWrite()
     {
-        var log = new BlobAuditLog(new BlobServiceClient(Azurite).GetBlobContainerClient("missing" + Guid.NewGuid().ToString("N")));
+        // Only a missing blob means "no log yet". A missing container must not lead to a write.
+        bool wrote = false;
+        var log = new BlobAuditLog(new RacingContainer("missing" + Guid.NewGuid().ToString("N"), () =>
+        {
+            wrote = true;
+            return Task.CompletedTask;
+        }));
 
         RequestFailedException e = await Assert.ThrowsExactlyAsync<RequestFailedException>(
             () => log.AppendAsync("abc", AuditFileTests.DocumentedEntries()[0]));
 
         Assert.AreEqual(BlobErrorCode.ContainerNotFound.ToString(), e.ErrorCode);
+        Assert.IsFalse(wrote, "No write was tried.");
     }
 
     [TestMethod]
