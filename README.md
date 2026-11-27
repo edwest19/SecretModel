@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.9 by Claude Opus 5.5, 2026-11-25 to 2026-11-26. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.10 by Claude Opus 5.5, 2026-11-25 to 2026-11-26. AI-generated. -->
 
 # SecretModel
 
@@ -13,8 +13,8 @@ not production, and it never handles real card or cardholder data.
 
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
-(§7), the profile file, the Home-mode and Azure Blob model stores (§9), and the journal file reader
-(§8.1). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+(§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
+(§8.1), and the Home-mode symbol history store (§9.3). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -35,7 +35,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 | Path | What it holds |
 |---|---|
-| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile file, the Home-mode model store and the journal file reader. No ASP.NET or Azure dependencies. |
+| `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, and the journal file reader. No ASP.NET or Azure dependencies. |
 | `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, the Azure Blob model store. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
@@ -51,7 +51,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.9
+**Version:** 0.10
 **Date:** 2026-11-26
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -117,7 +117,7 @@ enabled for both `journal/` and `models/`. Its SFTP endpoint bills hourly while 
 |---|---|
 | SM-PRIV-001 | The server MUST reject any token that does not match `^tok_(cus\|card\|txn\|merch)_[0-9a-f]{24}$` as a whole value. A trailing newline is not allowed (in .NET, `$` would allow one, so the code uses `\z`). Prefix-only checking is insufficient. |
 | SM-PRIV-002 | A value that fails SM-PRIV-001 MUST be treated as possibly carrying a card number when, ignoring every character that is not a letter or digit, it contains 13 or more consecutive decimal digits in any script. It is rejected like any malformed token and handled as personal data (SM-PRIV-004, SM-PRIV-005, SM-JRNL-005). **This closes the `tok_4111111111111111` bypass confirmed in the prototype**, and also catches `tok_card_4111…`, dots, slashes, no-break or zero-width spaces between digits, and full-width digits. |
-| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, timestamp buckets, country codes, merchant category codes, and derived model parameters. |
+| SM-PRIV-003 | The server MUST NOT persist any value other than: tokens, amount bins, observation symbols, sequence numbers (journal `seq`, at most 12 digits), timestamp buckets, country codes, merchant category codes, and derived model parameters. |
 | SM-PRIV-004 | Rejection responses MUST NOT echo the rejected value in the body, headers, or logs. |
 | SM-PRIV-005 | No log statement at any level MAY emit a field that failed SM-PRIV-002. |
 | SM-PRIV-006 | No identifier in the server source (`src/`) MAY name a PAN-bearing concept (`pan`, `card_number`, `cardholder`, `cvv`, `expiry`). Enforced by a test that splits identifiers into words (`cardNumber` → `card`, `number`) and fails on a forbidden word. A raw substring search is not acceptable, because it matches `Span` and `expand`. |
@@ -338,7 +338,9 @@ there by any means (SFTP through Windows OpenSSH Server is optional and outside 
 
 Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each card has one
 **profile**: its trained model together with its likelihood history, the baseline (SM-SCORE-012).
-**Home mode:** a local folder (§9.1). **Azure mode:** Blob Storage (§9.2).
+**Home mode:** a local folder (§9.1). **Azure mode:** Blob Storage (§9.2). Each card also has a
+**symbol history**, every transaction ingested for it, kept so it can be retrained (§9.3, behind
+`IHistoryStore`).
 
 | ID | Requirement |
 |---|---|
@@ -349,6 +351,7 @@ Written against an `IModelStore` abstraction (`SecretModel.Core.Storage`). Each 
 | SM-STOR-005 | A service restart MUST NOT change any score. |
 | SM-STOR-006 | `client_id` MUST be part of every storage key so SM-AUTH-006 holds at the storage layer, not just in application logic. |
 | SM-STOR-007 | A profile MUST be stored as one file in the locked format `secretmodel-profile` version 1 (`docs/formats/profile-v1.md`), which holds only observation symbols and derived model parameters, counting among those the window length and the number of transactions the profile was built from (SM-PRIV-003). A reader MUST reject a file that does not follow the format exactly. A damaged file MUST be reported, never treated as missing. |
+| SM-STOR-008 | A card's symbol history MUST be stored next to its profile, at a path derived like the profile's (SM-STOR-001, SM-STOR-006), as one file in the locked format `secretmodel-history` version 1 (`docs/formats/history-v1.md`), which holds only sequence numbers and observation symbols (SM-PRIV-003). Writes MUST follow SM-STOR-002. A reader MUST reject a file that does not follow the format exactly. A damaged file MUST be reported, never treated as missing. |
 
 ### 9.1 Home-mode store
 
@@ -396,6 +399,23 @@ Blob store test fails and says how to start it; none is skipped. To run these te
 Azurite as the workflow's "Start Azurite" step does, which needs Node.js 22 or newer. Microsoft also
 documents Docker, the VS Code extension, and the copy that ships with Visual Studio 2022; none of
 those has been tried here. Real Azure Blob Storage is not tested yet.
+
+### 9.3 Symbol history (Home mode)
+
+- **What:** every transaction ingested for a card, as its journal `seq` and its observation symbol,
+  in ascending `seq` order (`docs/formats/history-v1.md`, approved by Edwin on 2026-11-26). A profile
+  keeps only what scoring needs, so this is what lets a card be retrained on its full history when a
+  later journal file brings more transactions. A card with too short a history to train still has
+  one, and stays cold-start.
+- **Path:** next to the profile, `{root}/{client hash}/{customer token}/{card token}.history.json`,
+  under the same root as the profiles, with the same key rules (§9.1).
+- **Version, locking and writing:** exactly as for profiles (§9.1), with its own
+  `{history}.lock` file. Both stores share one implementation (`VersionedFile`).
+- **No cache** (SM-STOR-003): every read opens the file.
+- **Not yet:** the Azure-mode history store comes with the Azure journal source (Task 8c).
+
+**Tests:** `CardHistoryFileTests` (including the format's byte-for-byte known answer) and
+`FileHistoryStoreTests`.
 
 ---
 
@@ -466,6 +486,12 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 ---
 
 ## 15. Revision history
+
+**v0.10 (2026-11-26)**
+- Added §9.3 and SM-STOR-008, each card's symbol history: format `secretmodel-history` version 1
+  (`docs/formats/history-v1.md`) and the Home-mode history store.
+- SM-PRIV-003 now allows sequence numbers (journal `seq`) to be stored, approved by Edwin, so a
+  later journal file can be merged in order and a repeated transaction recognized.
 
 **v0.9 (2026-11-26)**
 - Added §8.1, the journal file: format `secretmodel-journal` version 1 (`docs/formats/journal-v1.md`)
