@@ -1,5 +1,6 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the Home-mode folders
-// approved by Edwin West on 2026-11-26 (design C), with links skipped as approved 2026-11-27.
+// approved by Edwin West on 2026-11-26 (design C), with links skipped and linked archive/ and
+// quarantine/ folders refused, as approved 2026-11-27.
 // AI-generated.
 
 namespace SecretModel.Core.Journal;
@@ -9,7 +10,8 @@ namespace SecretModel.Core.Journal;
 /// <c>{journal root}/{client id}/</c>, into which the client places its files by any means. The
 /// server adds <c>archive/</c> and <c>quarantine/</c> inside each client folder when it first needs
 /// them. A symbolic link is never listed, even one named <c>*.jsonl</c>: it could point at another
-/// client's file (README SM-AUTH-006). Nothing is cached between calls.
+/// client's file (README SM-AUTH-006). For the same reason a move into an <c>archive/</c> or
+/// <c>quarantine/</c> that is a link is refused. Nothing is cached between calls.
 /// </summary>
 public sealed class FolderJournalSource : IJournalSource
 {
@@ -52,6 +54,13 @@ public sealed class FolderJournalSource : IJournalSource
         ArgumentException.ThrowIfNullOrWhiteSpace(targetName);
         string source = Path.Combine(Root, file.ClientId, file.Name);
         string target = Path.Combine(Root, file.ClientId, folder == JournalFolder.Archive ? ArchiveFolderName : QuarantineFolderName);
+        if (new DirectoryInfo(target).LinkTarget is not null)
+        {
+            // A client could make archive/ or quarantine/ a link to another client's folder before the
+            // server makes the real one (README SM-AUTH-006). The message names no file.
+            throw new IOException("A client's archive or quarantine folder is a link; nothing was moved.");
+        }
+
         Directory.CreateDirectory(target);
 
         string stem = Path.GetFileNameWithoutExtension(targetName);

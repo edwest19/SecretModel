@@ -647,4 +647,23 @@ public sealed class JournalIngestorTests
         Assert.IsNotNull(new FileInfo(link).LinkTarget, "The link is left where it is.");
         Assert.AreEqual(content, File.ReadAllText(Archived("day1.jsonl", "client-b")));
     }
+
+    [TestMethod]
+    [TestCategory("SM-AUTH-006")]
+    [DataRow("archive", "day1.jsonl", false)]        // a good file is archived
+    [DataRow("quarantine", "day1.jsonl", true)]      // a rejected file is quarantined
+    [DataRow("quarantine", "day 1.jsonl", false)]    // so is a file with a bad name
+    public async Task AnArchiveOrQuarantineThatIsALink_StopsTheRun_AndNothingReachesTheOtherClient(string folderName, string name, bool rejected)
+    {
+        string content = rejected ? JournalText("{\"note\":\"4111 1111 1111 1111\"}") : JournalText(Line(0));
+        string landed = Drop(name, content);
+        string theirs = Path.Combine(journalRoot, "client-b");
+        Directory.CreateDirectory(theirs);
+        Directory.CreateSymbolicLink(Path.Combine(journalRoot, Client, folderName), theirs);
+
+        await Assert.ThrowsExactlyAsync<IOException>(() => Ingestor().RunAsync());
+
+        Assert.IsEmpty(Directory.GetFileSystemEntries(theirs), "Nothing reached client B's folder.");
+        Assert.AreEqual(content, File.ReadAllText(landed), "The file stays where it is.");
+    }
 }

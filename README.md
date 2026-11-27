@@ -375,6 +375,10 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   because the profile's transaction count differs from the history's.
 - **Names already taken:** if `archive/` or `quarantine/` already holds a name, the file gets the
   lowest free number before `.jsonl` (`day1.1.jsonl`, `day1.2.jsonl`, …). Nothing is overwritten.
+- **Linked folders** (SM-AUTH-006): if a client's `archive/` or `quarantine/` is a link, which could
+  point at another client's folder, nothing is moved into it. The run stops with an error that names
+  no file, and the file stays where it is. Hard links cannot be told from ordinary files this way;
+  keeping clients from making them is left to how the SFTP server is set up.
 - **Audit log** (SM-JRNL-008): `{model root}/{client hash}/audit.jsonl`, in the locked format
   `secretmodel-audit` version 1 (`docs/formats/audit-v1.md`). One line is added for every file a run
   handles, a file kept for retry included: the time, the file's name and SHA-256, the outcome
@@ -546,8 +550,8 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 - Added the audit log, format `secretmodel-audit` version 1 (`docs/formats/audit-v1.md`).
 - SM-PRIV-003 now allows what the audit log holds: file names that follow §8.2, file hashes, times,
   counts, line numbers and reasons. Approved by Edwin.
-- A client id may not hold a run of 13 digits, and symbolic links in a client folder are never
-  read. Approved by Edwin.
+- A client id may not hold a run of 13 digits, symbolic links in a client folder are never read,
+  and nothing is moved into an `archive/` or `quarantine/` that is a link. Approved by Edwin.
 - SM-JRNL-003, -004, -006, -007 and -008 are tested.
 
 **v0.10 (2026-11-26)**

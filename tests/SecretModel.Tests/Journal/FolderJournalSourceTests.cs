@@ -79,6 +79,26 @@ public sealed class FolderJournalSourceTests
     }
 
     [TestMethod]
+    [TestCategory("SM-AUTH-006")]
+    [DataRow(JournalFolder.Archive, "archive")]
+    [DataRow(JournalFolder.Quarantine, "quarantine")]
+    public async Task Move_IntoAFolderThatIsALink_IsRefused_AndMovesNothing(JournalFolder folder, string folderName)
+    {
+        string theirs = Path.Combine(root, "client-b");
+        Directory.CreateDirectory(theirs);
+        string original = Put("client-a/day1.jsonl", "content");
+        Directory.CreateSymbolicLink(Path.Combine(root, "client-a", folderName), theirs);
+        var source = new FolderJournalSource(root);
+
+        IOException e = await Assert.ThrowsExactlyAsync<IOException>(
+            () => source.MoveAsync(new JournalFileRef("client-a", "day1.jsonl"), folder, "day1.jsonl"));
+
+        Assert.DoesNotContain("day1", e.Message, "The message names no file.");
+        Assert.AreEqual("content", File.ReadAllText(original), "The file stays where it is.");
+        Assert.IsEmpty(Directory.GetFileSystemEntries(theirs), "Nothing reached the other client's folder.");
+    }
+
+    [TestMethod]
     [TestCategory("SM-JRNL-006")]
     public async Task Move_CreatesTheFolder_AndMovesTheFileUnchanged()
     {
