@@ -32,7 +32,8 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 
 - `src/SecretModel.Core`: tokenizer, quantizer, token validation, HMM, scorer, the profile and
   history files, the `IModelStore` and `IHistoryStore` interfaces, the Home-mode `FileModelStore`
-  and `FileHistoryStore`, and the journal file reader. No ASP.NET, no Azure.
+  and `FileHistoryStore`, the journal file reader, and Home-mode ingestion (`FolderJournalSource`,
+  `JournalIngestor`, `FileAuditLog`). No ASP.NET, no Azure.
 - `src/SecretModel.Api`: ASP.NET Core host, certificate authentication, the Azure Blob model store.
 - `tests/SecretModel.Tests`: MSTest tests.
 - `tools/SecretModel.Synthetic`: synthetic shoppers and anomalies (made-up data) for tests, the study and the harness.
