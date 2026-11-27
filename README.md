@@ -45,6 +45,7 @@ tests also need Azurite, which CI starts (§9.2).
 | `tools/golden` | Produces the tests' golden vectors: by running the Python reference, or by exhaustive exact computation. |
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 | `tools/SecretModel.Synthetic` | Synthetic shoppers and injected anomalies, for tests, the study and the harness. |
+| `tools/SecretModel.AzureCheck` | Checks the Azure-mode stores and journal source against a real storage account (§8.3; `docs/azure/storage-setup.md`). |
 | `tools/SecretModel.ScoringStudy` | The measurement behind §7.1. |
 | `tools/azurite` | Azurite, Microsoft's Blob Storage emulator, pinned for the tests only (§9.2). |
 | `docs/studies` | Full output of each measurement that decided a setting. |
@@ -418,6 +419,9 @@ same ingestor with the same rules as §8.2. **Not yet tried on real Azure** (Tas
   and a replacement is read on the next run. Nothing is overwritten.
 - **Links:** the SFTP endpoint doesn't support symbolic links, so §8.2's link rules have nothing to
   act on in Azure mode.
+
+**Setup and the real-Azure check:** `docs/azure/storage-setup.md`, with
+`tools/SecretModel.AzureCheck`.
 
 **Tests:** `BlobJournalSourceTests`, against Azurite (§9.2), including four runs of the ingestor
 with this source and the Azure-mode stores. Azurite has no hierarchical namespace: directory

@@ -39,6 +39,8 @@ Approved by Edwin on 2026-11-25. Anything else, and any version upgrade, needs E
 - `tests/SecretModel.Tests`: MSTest tests.
 - `tools/SecretModel.Synthetic`: synthetic shoppers and anomalies (made-up data) for tests, the study and the harness.
 - `tools/azurite`: the pinned Azurite emulator (`package.json`, `package-lock.json`) and `wait-for-port.mjs`, for the Blob store tests only.
+- `tools/SecretModel.AzureCheck`: checks the Azure-mode stores and journal source against a real storage account, run by
+  Edwin on his PC (`docs/azure/storage-setup.md`).
 - `tools/SecretModel.ScoringStudy`: the measurement behind README §7.1; its output lives in `docs/studies/`.
 - `reference/python`: the Meta AI prototype. **Read-only.** Never edit it; its attribution stays.
   `PROVENANCE.md` there lists every file's hash.
