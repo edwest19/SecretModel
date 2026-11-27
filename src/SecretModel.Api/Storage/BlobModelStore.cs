@@ -1,4 +1,5 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated. Its error check
+// moved unchanged to BlobErrors on 2026-11-27, so the history store and audit log share it.
 
 using Azure;
 using Azure.Storage.Blobs;
@@ -33,7 +34,7 @@ public sealed class BlobModelStore : IModelStore
         {
             result = (await Container.GetBlobClient(key.RelativePath).DownloadContentAsync(cancellationToken)).Value;
         }
-        catch (RequestFailedException e) when (Is(e, BlobErrorCode.BlobNotFound))
+        catch (RequestFailedException e) when (BlobErrors.Is(e, BlobErrorCode.BlobNotFound))
         {
             // Only a missing blob means "no profile". A missing container, or anything else, is an error.
             return null;
@@ -61,17 +62,14 @@ public sealed class BlobModelStore : IModelStore
                 .UploadAsync(BinaryData.FromBytes(CardProfileFile.Write(profile)), options, cancellationToken);
             return response.Value.ETag.ToString();
         }
-        catch (RequestFailedException e) when (Is(e, BlobErrorCode.BlobAlreadyExists))
+        catch (RequestFailedException e) when (BlobErrors.Is(e, BlobErrorCode.BlobAlreadyExists))
         {
             throw new ConcurrencyConflictException("A profile is already stored for this card.");
         }
-        catch (RequestFailedException e) when (Is(e, BlobErrorCode.ConditionNotMet))
+        catch (RequestFailedException e) when (BlobErrors.Is(e, BlobErrorCode.ConditionNotMet))
         {
             // Blob Storage answers the same way whether the profile was replaced or deleted.
             throw new ConcurrencyConflictException("The stored profile was changed or removed by another writer.");
         }
     }
-
-    private static bool Is(RequestFailedException e, BlobErrorCode code) =>
-        string.Equals(e.ErrorCode, code.ToString(), StringComparison.Ordinal);
 }

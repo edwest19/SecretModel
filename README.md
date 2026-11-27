@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.11 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.12 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -14,8 +14,8 @@ not production, and it never handles real card or cardholder data.
 **Status:** in progress. Implemented so far: the client tokenizer (§4), the quantizer (§5), token
 validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6), the scorer
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
-(§8.1), the Home-mode symbol history store (§9.3), and Home-mode journal ingestion
-with its audit log (§8.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+(§8.1), the Home-mode symbol history store (§9.3), Home-mode journal ingestion
+with its audit log (§8.2), and the Azure-mode history store and audit log (§9.2). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -37,7 +37,7 @@ tests also need Azurite, which CI starts (§9.2).
 | Path | What it holds |
 |---|---|
 | `src/SecretModel.Core` | Logic: tokenizer, quantizer, token validation, HMM, scoring, the profile and history files, the Home-mode model and history stores, the journal file reader, and Home-mode journal ingestion (folder source, ingestor, audit log). No ASP.NET or Azure dependencies. |
-| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, the Azure Blob model store. |
+| `src/SecretModel.Api` | ASP.NET Core host: endpoints, client-certificate authentication, and the Azure Blob model store, history store and audit log. |
 | `tests/SecretModel.Tests` | MSTest tests, one or more per requirement. |
 | `reference/python` | The Meta AI Python prototype, unmodified. See its `PROVENANCE.md`. |
 | `docs/formats` | Locked file formats, each with a known-answer test. |
@@ -52,7 +52,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.11
+**Version:** 0.12
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -384,6 +384,7 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   handles, a file kept for retry included: the time, the file's name and SHA-256, the outcome
   (`archived`, `retry`, `rejected` or `bad_name`), and the counts of records, new transactions and
   cards trained or failed, with each quarantined line's number and reason. Never transaction content.
+  In Azure mode the same bytes are kept in a blob (§9.2).
 - **Not yet:** the Azure journal source (Task 8c) and running ingestion from the server (Task 9).
 
 **Tests:** `JournalIngestorTests`, `FolderJournalSourceTests`, `JournalNamesTests`, `AuditFileTests`
@@ -457,6 +458,23 @@ Azurite as the workflow's "Start Azurite" step does, which needs Node.js 22 or n
 documents Docker, the VS Code extension, and the copy that ships with Visual Studio 2022; none of
 those has been tried here. Real Azure Blob Storage is not tested yet.
 
+**History and audit log** (design approved by Edwin on 2026-11-27):
+- **History:** one block blob per card, `{client hash}/{customer token}/{card token}.history.json`,
+  next to the card's profile in the same container, in the locked format of §9.3
+  (`docs/formats/history-v1.md`). Versions, conditional writes and conflicts are exactly as for
+  profiles above.
+- **Audit log** (SM-JRNL-008): one block blob per client, `{client hash}/audit.jsonl`, in the same
+  container, holding exactly the bytes the Home-mode log would (`docs/formats/audit-v1.md`), with
+  content type `application/x-ndjson`. Adding a line reads the blob, adds the line and writes it back
+  only if the blob is unchanged since the read (`If-Match` its ETag; `If-None-Match: *` for a
+  client's first line). An append that lost a race fails loudly with a conflict and drops no other
+  writer's line. Only one ingestion run may go at a time (§8.2), so a conflict means something else
+  wrote to the log.
+
+**Tests:** `BlobHistoryStoreTests` and `BlobAuditLogTests`, against Azurite as above.
+`BlobAuditLogTests` also ingests the same journal into the Home-mode stores and into the Azure-mode
+stores and checks that every stored byte is the same.
+
 ### 9.3 Symbol history (Home mode)
 
 - **What:** every transaction ingested for a card, as its journal `seq` and its observation symbol,
@@ -469,7 +487,7 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 - **Version, locking and writing:** exactly as for profiles (§9.1), with its own
   `{history}.lock` file. Both stores share one implementation (`VersionedFile`).
 - **No cache** (SM-STOR-003): every read opens the file.
-- **Not yet:** the Azure-mode history store comes with the Azure journal source (Task 8c).
+- **Azure mode:** §9.2.
 
 **Tests:** `CardHistoryFileTests` (including the format's byte-for-byte known answer) and
 `FileHistoryStoreTests`.
@@ -543,6 +561,9 @@ those has been tried here. Real Azure Blob Storage is not tested yet.
 ---
 
 ## 15. Revision history
+
+**v0.12 (2026-11-27)**
+- §9.2: the Azure-mode history store and audit log, design approved by Edwin.
 
 **v0.11 (2026-11-27)**
 - Added §8.2, Home-mode journal ingestion: the client folders, the name rules, grouping and merging

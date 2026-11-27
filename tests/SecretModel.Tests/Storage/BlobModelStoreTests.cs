@@ -1,4 +1,5 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-25. AI-generated. The Azurite
+// constant and check made internal on 2026-11-27 so the other Blob test classes share them.
 //
 // Tests for the Azure-mode model store, run against Azurite, Microsoft's local Blob Storage
 // emulator (README §9.2): SM-STOR-001 (blob name), SM-STOR-002 (optimistic concurrency with ETags),
@@ -23,7 +24,7 @@ namespace SecretModel.Tests.Storage;
 public sealed class BlobModelStoreTests
 {
     // The SDK's documented shortcut for the emulator's public development account. It holds no key.
-    private const string Azurite = "UseDevelopmentStorage=true";
+    internal const string Azurite = "UseDevelopmentStorage=true";
 
     private const string HowToStartAzurite =
         "Azurite is not reachable on 127.0.0.1:10000, so the Blob store tests can't run. It needs Node.js 22 or newer. "
