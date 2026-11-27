@@ -368,16 +368,18 @@ public sealed class JournalIngestorTests
     [TestCategory("SM-JRNL-003")]
     public async Task LinesThatDisagreeAboutASeq_AreAllSeqConflicts_AndARepeatCountsOnce()
     {
-        Drop("day1.jsonl", JournalText(Line(7), Line(7, amountBin: 7), Line(7), Line(8), Line(8)));
+        // Card B's only lines disagree with each other, so it gets no history at all.
+        Drop("day1.jsonl", JournalText(Line(7), Line(7, amountBin: 7), Line(7), Line(8), Line(8), Line(9, CardB), Line(9, CardB, amountBin: 7)));
 
         await Ingestor().RunAsync();
 
         CardHistory history = (await HistoryOf(Key()))!;
         CollectionAssert.AreEqual(new long[] { 8 }, history.Seq.ToArray());
         CollectionAssert.AreEqual(new[] { SymbolOf(8) }, history.Symbols.ToArray());
+        Assert.IsNull(await HistoryOf(Key(CardB)));
         AssertCounts(
             AuditLines().Single().Values, "archived", records: 2, @new: 1,
-            "[[1,\"SeqConflict\"],[2,\"SeqConflict\"],[3,\"SeqConflict\"]]", cardsTrained: 0);
+            "[[1,\"SeqConflict\"],[2,\"SeqConflict\"],[3,\"SeqConflict\"],[6,\"SeqConflict\"],[7,\"SeqConflict\"]]", cardsTrained: 0);
     }
 
     // ---- SM-JRNL-007: the minimum ----------------------------------------------------------------
@@ -440,7 +442,9 @@ public sealed class JournalIngestorTests
     [DataRow("conflict")]
     public async Task WhenACardCannotBeSaved_TheFileStaysForRetry_AndTheRetrySkipsWhatWasSaved(string failure)
     {
-        string content = JournalText([.. Lines(Enumerable.Range(0, 14)), .. Lines([0, 1, 2], CardB)]);
+        // Card B's lines 16 and 18 disagree about seq 1: they are SeqConflicts on both runs.
+        string content = JournalText([.. Lines(Enumerable.Range(0, 14)), .. Lines([0, 1, 2], CardB), Line(1, CardB, amountBin: 7)]);
+        const string conflicts = "[[16,\"SeqConflict\"],[18,\"SeqConflict\"]]";
         string landed = Drop("day1.jsonl", content);
         var failing = new FailingHistoryStore(new FileHistoryStore(modelRoot), CardB, Failure(failure));
 
@@ -448,7 +452,7 @@ public sealed class JournalIngestorTests
 
         var first = AuditLines().Single();
         Assert.AreEqual(RetryNames, first.Names);
-        AssertCounts(first.Values, "retry", records: 17, @new: 14, "[]", cardsTrained: 1, cardsFailed: 1);
+        AssertCounts(first.Values, "retry", records: 16, @new: 14, conflicts, cardsTrained: 1, cardsFailed: 1);
         Assert.AreEqual(content, File.ReadAllText(landed), "The file stays where it is, unchanged.");
         Assert.IsFalse(Directory.Exists(Path.Combine(journalRoot, Client, "archive")));
         Assert.IsNull(await HistoryOf(Key(CardB)));
@@ -459,10 +463,10 @@ public sealed class JournalIngestorTests
 
         var second = AuditLines()[1];
         Assert.AreEqual(ArchivedNames, second.Names);
-        AssertCounts(second.Values, "archived", records: 17, @new: 3, "[]", cardsTrained: 0);
+        AssertCounts(second.Values, "archived", records: 16, @new: 2, conflicts, cardsTrained: 0);
         Assert.IsFalse(File.Exists(landed));
         Assert.AreEqual(content, File.ReadAllText(Archived("day1.jsonl")));
-        Assert.AreEqual(3, (await HistoryOf(Key(CardB)))!.Count);
+        CollectionAssert.AreEqual(new long[] { 0, 2 }, (await HistoryOf(Key(CardB)))!.Seq.ToArray());
         CollectionAssert.AreEqual(historyA, HistoryBytes(Key(CardA)), "What was saved the first time is skipped.");
         CollectionAssert.AreEqual(profileA, ProfileBytes(Key(CardA)));
     }

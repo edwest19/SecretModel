@@ -96,12 +96,9 @@ public sealed class JournalIngestor
         var quarantined = new List<QuarantinedLine>(read.Quarantined);
         int added = 0, trained = 0, failed = 0;
 
-        // SM-JRNL-004: one group per (client, customer, card); the client is the folder's.
-        var cards = read.Records
-            .GroupBy(r => (r.CustomerToken, r.CardToken))
-            .OrderBy(g => g.Key.CustomerToken, StringComparer.Ordinal)
-            .ThenBy(g => g.Key.CardToken, StringComparer.Ordinal);
-        foreach (var card in cards)
+        // SM-JRNL-004: one group per (client, customer, card); the client is the folder's. Each card is
+        // handled on its own, so the order of the groups changes nothing.
+        foreach (var card in read.Records.GroupBy(r => (r.CustomerToken, r.CardToken)))
         {
             var key = new ProfileKey(file.ClientId, card.Key.CustomerToken, card.Key.CardToken);
             CardOutcome outcome = await IngestCardAsync(key, [.. card], cancellationToken);
