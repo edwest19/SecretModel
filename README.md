@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.13 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.14 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -45,6 +45,7 @@ tests also need Azurite, which CI starts (§9.2).
 | `tools/golden` | Produces the tests' golden vectors: by running the Python reference, or by exhaustive exact computation. |
 | `tools/unicode` | Measures Python's lowercasing to produce `PythonLowercaseData.g.cs` (SM-TOK-008). |
 | `tools/SecretModel.Synthetic` | Synthetic shoppers and injected anomalies, for tests, the study and the harness. |
+| `tools/SecretModel.AzureCheck` | Checks the Azure-mode stores and journal source against a real storage account (§8.3; `docs/azure/storage-setup.md`). |
 | `tools/SecretModel.ScoringStudy` | The measurement behind §7.1. |
 | `tools/azurite` | Azurite, Microsoft's Blob Storage emulator, pinned for the tests only (§9.2). |
 | `docs/studies` | Full output of each measurement that decided a setting. |
@@ -53,7 +54,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.13
+**Version:** 0.14
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -419,6 +420,10 @@ same ingestor with the same rules as §8.2. **Not yet tried on real Azure** (Tas
 - **Links:** the SFTP endpoint doesn't support symbolic links, so §8.2's link rules have nothing to
   act on in Azure mode.
 
+**Setup and the real-Azure check:** `docs/azure/storage-setup.md`, with
+`tools/SecretModel.AzureCheck`. **Not run:** paused by Edwin on 2026-11-27 because of the cost; the
+server runs on his PC in Home mode first.
+
 **Tests:** `BlobJournalSourceTests`, against Azurite (§9.2), including four runs of the ingestor
 with this source and the Azure-mode stores. Azurite has no hierarchical namespace: directory
 entries are imitated there with the metadata, and listing order and SFTP access between clients
@@ -595,6 +600,11 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.14 (2026-11-27)**
+- Added the Azure storage setup steps (`docs/azure/storage-setup.md`) and the check program
+  `tools/SecretModel.AzureCheck`. Not run: Edwin paused the real-Azure check because of the cost,
+  and the server is run on his PC in Home mode first.
 
 **v0.13 (2026-11-27)**
 - Added §8.3, the Azure-mode journal source: one `journal` container, a folder per client owned by
