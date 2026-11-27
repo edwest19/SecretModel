@@ -119,8 +119,8 @@ public sealed class BlobJournalSource : IJournalSource
 
     private static string BlobName(JournalFileRef file) => $"{file.ClientId}/{file.Name}";
 
+    // Listed with BlobTraits.Metadata, a blob always has a metadata dictionary (measured on Azurite).
     private static bool IsDirectory(BlobItem blob) =>
-        blob.Metadata is not null
-        && blob.Metadata.TryGetValue(DirectoryMetadata, out string? value)
+        blob.Metadata.TryGetValue(DirectoryMetadata, out string? value)
         && string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
 }

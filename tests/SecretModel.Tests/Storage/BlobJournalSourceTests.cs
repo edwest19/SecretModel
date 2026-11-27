@@ -97,6 +97,33 @@ public sealed class BlobJournalSourceTests
         }
     }
 
+    // A container whose listings come back in reverse order, as a hierarchical namespace's
+    // depth-first listing may not be in name order. Azurite itself lists in name order.
+    private sealed class ReversedListingContainer(string name) : BlobContainerClient(Azurite, name)
+    {
+        public override AsyncPageable<BlobHierarchyItem> GetBlobsByHierarchyAsync(
+            BlobTraits traits = BlobTraits.None, BlobStates states = BlobStates.None, string? delimiter = null, string? prefix = null,
+            CancellationToken cancellationToken = default) =>
+            new Reversed(base.GetBlobsByHierarchyAsync(traits, states, delimiter, prefix, cancellationToken));
+
+        private sealed class Reversed(AsyncPageable<BlobHierarchyItem> inner) : AsyncPageable<BlobHierarchyItem>
+        {
+            public override async IAsyncEnumerable<Page<BlobHierarchyItem>> AsPages(string? continuationToken = null, int? pageSizeHint = null)
+            {
+                var items = new List<BlobHierarchyItem>();
+                Response? response = null;
+                await foreach (Page<BlobHierarchyItem> page in inner.AsPages(continuationToken, pageSizeHint))
+                {
+                    items.AddRange(page.Values);
+                    response = page.GetRawResponse();
+                }
+
+                items.Reverse();
+                yield return Page<BlobHierarchyItem>.FromValues(items, null, response!);
+            }
+        }
+    }
+
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
@@ -148,6 +175,23 @@ public sealed class BlobJournalSourceTests
                 new JournalFileRef("b-client", "z.jsonl", z),
             },
             files.ToArray());
+    }
+
+    [TestMethod]
+    [TestCategory("SM-JRNL-006")]
+    public async Task List_SortsClientsAndFilesByName_WhateverOrderTheListingComesIn()
+    {
+        await Put("b-client/a.jsonl", "a");
+        await Put("b-client/b.jsonl", "b");
+        await Put("a-client/m.jsonl", "m");
+        await Put("a-client/n.jsonl", "n");
+        var reversed = new BlobJournalSource(new ReversedListingContainer(journal.Name));
+
+        IReadOnlyList<JournalFileRef> files = await reversed.ListAsync();
+
+        CollectionAssert.AreEqual(
+            new[] { "a-client/m.jsonl", "a-client/n.jsonl", "b-client/a.jsonl", "b-client/b.jsonl" },
+            files.Select(f => $"{f.ClientId}/{f.Name}").ToArray());
     }
 
     [TestMethod]
