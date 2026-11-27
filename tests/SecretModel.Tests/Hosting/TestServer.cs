@@ -72,6 +72,8 @@ internal sealed class CapturedLogs : ILoggerProvider
 
     public string All => string.Join("\n", entries);
 
+    public IReadOnlyList<string> Entries => [.. entries];
+
     public ILogger CreateLogger(string categoryName) => new Logger(categoryName, entries);
 
     public void Dispose()
@@ -103,7 +105,7 @@ internal sealed class RunningServer : IAsyncDisposable
         this.app = app;
         this.folder = folder;
         Logs = logs;
-        Url = new Uri(app.Urls.Single());
+        Url = new Uri(app.Urls.First());
     }
 
     public Uri Url { get; }
@@ -134,6 +136,11 @@ internal sealed class RunningServer : IAsyncDisposable
     public static IConfiguration Configuration(IDictionary<string, string?> settings) =>
         new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
 
+    /// <summary>A test-only endpoint that always throws, with a message that must never reach the client.</summary>
+    public const string ThrowPath = "/test/throw";
+
+    public const string ThrownMessage = "synthetic failure: details that stay on the server";
+
     public static async Task<RunningServer> StartAsync(Action<string, Dictionary<string, string?>>? change = null, string password = TestPki.Password)
     {
         (string folder, Dictionary<string, string?> settings) = Prepare();
@@ -141,9 +148,13 @@ internal sealed class RunningServer : IAsyncDisposable
         var logs = new CapturedLogs();
         WebApplication app = ServerHost.Create(Configuration(settings), password, logs: logs);
         app.MapGet(ClientPath, (HttpContext context) => context.Features.Get<ClientIdentity>()?.ClientId ?? "(none)");
+        app.MapGet(ThrowPath, string () => throw new InvalidOperationException(ThrownMessage));
         await app.StartAsync();
         return new RunningServer(app, folder, logs);
     }
+
+    /// <summary>The environment the server runs in.</summary>
+    public string EnvironmentName => app.Environment.EnvironmentName;
 
     /// <summary>
     /// A client that trusts only the test server certificate, by its thumbprint, and presents

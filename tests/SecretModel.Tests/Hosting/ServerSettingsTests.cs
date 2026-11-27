@@ -83,11 +83,13 @@ public sealed class ServerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("ServerCertificate")]
-    [DataRow("ClientCertificateAuthority")]
-    public void Load_RefusesAMissingCertificateSetting(string key)
+    [DataRow("ServerCertificate", null)]
+    [DataRow("ServerCertificate", "")]
+    [DataRow("ClientCertificateAuthority", null)]
+    [DataRow("ClientCertificateAuthority", "")]
+    public void Load_RefusesAMissingCertificateSetting(string key, string? value)
     {
-        settings.Remove("SecretModel:" + key);
+        settings["SecretModel:" + key] = value;
 
         Assert.AreEqual(
             $"SecretModel:{key} is not set. Put it in the settings file named by SECRETMODEL_SETTINGS (README §3.1).", Refused().Message);

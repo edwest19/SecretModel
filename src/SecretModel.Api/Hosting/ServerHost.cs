@@ -37,7 +37,6 @@ public static class ServerHost
             ContentRootPath = AppContext.BaseDirectory,
             EnvironmentName = Environments.Production,
         });
-        builder.Configuration.AddConfiguration(settings);
         builder.Logging.ClearProviders();
         builder.Logging.AddSimpleConsole(o => o.SingleLine = true);
         builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
@@ -130,7 +129,7 @@ public static class ServerHost
         }
         else
         {
-            kestrel.Listen(IPAddress.Parse(url.Host.Trim('[', ']')), url.Port, listen => listen.UseHttps(https));
+            kestrel.Listen(IPAddress.Parse(url.Host), url.Port, listen => listen.UseHttps(https));
         }
     }
 }

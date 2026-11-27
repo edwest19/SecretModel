@@ -255,6 +255,82 @@ public sealed class ServerTests
     }
 
     [TestMethod]
+    [TestCategory("SM-PRIV-004")]
+    [DoNotParallelize]
+    public async Task DevelopmentEnvironment_IsNeverUsed_SoNoErrorShowsItsDetails()
+    {
+        // The template's launch profile sets this variable. It is process-wide, so this test runs
+        // on its own and puts the variable back afterwards.
+        const string variable = "ASPNETCORE_ENVIRONMENT";
+        string? before = Environment.GetEnvironmentVariable(variable);
+        RunningServer server;
+        Environment.SetEnvironmentVariable(variable, "Development");
+        try
+        {
+            server = await RunningServer.StartAsync();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(variable, before);
+        }
+
+        await using (server)
+        {
+            using HttpClient client = server.Client(TestPki.ClientA);
+
+            using HttpResponseMessage response = await client.GetAsync(RunningServer.ThrowPath);
+
+            Assert.AreEqual("Production", server.EnvironmentName);
+            Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+            string body = await response.Content.ReadAsStringAsync();
+            Assert.DoesNotContain(RunningServer.ThrownMessage, body);
+            Assert.DoesNotContain(nameof(InvalidOperationException), body);
+        }
+    }
+
+    [TestMethod]
+    [TestCategory("SM-AUTH-008")]
+    public async Task LocalhostAddress_IsServed()
+    {
+        // The default address is https://localhost:7443, and Kestrel can't pick a port for
+        // localhost, so this asks the system for a free one first.
+        using var probe = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        int port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        await using RunningServer server = await RunningServer.StartAsync((_, settings) => settings["SecretModel:Url"] = $"https://localhost:{port}");
+        using HttpClient client = server.Client(TestPki.ClientA);
+
+        using HttpResponseMessage health = await client.GetAsync("/health");
+        using HttpResponseMessage identity = await client.GetAsync(RunningServer.ClientPath);
+
+        Assert.AreEqual(HttpStatusCode.OK, health.StatusCode);
+        Assert.AreEqual("client-a", await identity.Content.ReadAsStringAsync());
+        Assert.AreEqual(port, server.Url.Port);
+    }
+
+    [TestMethod]
+    public async Task MicrosoftLogs_AreOnlyWarningsOrWorse()
+    {
+        RunningServer server = await RunningServer.StartAsync();
+        using (HttpClient none = server.Client(null))
+        using (HttpClient unlisted = server.Client(TestPki.Unlisted))
+        using (HttpClient clientA = server.Client(TestPki.ClientA))
+        {
+            (await none.GetAsync("/health")).Dispose();
+            (await none.GetAsync("/v1/score")).Dispose();
+            (await unlisted.GetAsync("/v1/score")).Dispose();
+            (await clientA.GetAsync("/v1/score")).Dispose();
+        }
+
+        await server.DisposeAsync();
+
+        string[] quiet = [.. server.Logs.Entries.Where(e => e.StartsWith("Trace Microsoft", StringComparison.Ordinal)
+            || e.StartsWith("Debug Microsoft", StringComparison.Ordinal) || e.StartsWith("Information Microsoft", StringComparison.Ordinal))];
+        Assert.IsEmpty(quiet, string.Join("\n", quiet));
+    }
+
+    [TestMethod]
     [TestCategory("SM-AUTH-002")]
     [TestCategory("SM-AUTH-008")]
     public async Task CertificatesFromTheTool_WorkWithTheServer()

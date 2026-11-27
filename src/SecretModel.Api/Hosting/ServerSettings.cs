@@ -68,7 +68,7 @@ public sealed record ServerSettings(
             throw new ServerSettingsException("SecretModel:Url must be an https address with no path, such as https://localhost:7443.");
         }
 
-        if (url.Host != "localhost" && !IPAddress.TryParse(url.Host.Trim('[', ']'), out _))
+        if (url.Host != "localhost" && !IPAddress.TryParse(url.Host, out _))
         {
             throw new ServerSettingsException("SecretModel:Url must name localhost or an IP address, such as 0.0.0.0 for every address of this computer.");
         }
