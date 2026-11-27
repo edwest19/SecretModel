@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.13 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.14 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -54,7 +54,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.13
+**Version:** 0.14
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -421,7 +421,8 @@ same ingestor with the same rules as §8.2. **Not yet tried on real Azure** (Tas
   act on in Azure mode.
 
 **Setup and the real-Azure check:** `docs/azure/storage-setup.md`, with
-`tools/SecretModel.AzureCheck`.
+`tools/SecretModel.AzureCheck`. **Not run:** paused by Edwin on 2026-11-27 because of the cost; the
+server runs on his PC in Home mode first.
 
 **Tests:** `BlobJournalSourceTests`, against Azurite (§9.2), including four runs of the ingestor
 with this source and the Azure-mode stores. Azurite has no hierarchical namespace: directory
@@ -599,6 +600,11 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.14 (2026-11-27)**
+- Added the Azure storage setup steps (`docs/azure/storage-setup.md`) and the check program
+  `tools/SecretModel.AzureCheck`. Not run: Edwin paused the real-Azure check because of the cost,
+  and the server is run on his PC in Home mode first.
 
 **v0.13 (2026-11-27)**
 - Added §8.3, the Azure-mode journal source: one `journal` container, a folder per client owned by

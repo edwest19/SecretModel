@@ -2,6 +2,10 @@
 
 # Azure storage: setup and check
 
+**Status: not run.** Paused by Edwin on 2026-11-27 because of the cost; the server is run on his
+PC in Home mode first. Azure mode is built and tested against Azurite only (README §8.3, §9.2).
+These steps and `tools/SecretModel.AzureCheck` are kept for when Azure mode is deployed.
+
 This sets up the storage account that Azure mode uses (README §1, §8.3, §9.2) and checks the
 Azure-mode stores and journal source against it, for what Azurite can't show: a hierarchical
 namespace, and files that arrive through the SFTP endpoint. Edwin does every step in the Azure
