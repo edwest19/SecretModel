@@ -64,11 +64,13 @@ public sealed class IngestionLoopTests
         using IngestionLoop loop = Loop(_ => { Interlocked.Increment(ref runs); return Task.FromResult(None); }, TimeSpan.FromHours(1), out CapturedLogs logs, serverStarted.Token);
         await loop.StartAsync(CancellationToken.None);
 
+        // Long enough for the loop to be waiting for the server, so the stop has to end that wait.
+        await Task.Delay(300);
         long start = Stopwatch.GetTimestamp();
         await StopAsync(loop);
 
-        // Ended, either way. Measured on .NET 10.0.15: a service stopped right after it starts is
-        // usually canceled before ExecuteAsync is ever entered (196 times in 200).
+        // Ended either way: had the loop not started yet, .NET cancels it before it begins (measured
+        // on .NET 10.0.15: 196 times in 200 when stopped at once), and the time is what this checks.
         Assert.IsLessThan(5.0, Stopwatch.GetElapsedTime(start).TotalSeconds);
         Assert.IsTrue(loop.ExecuteTask!.IsCompleted);
         Assert.AreEqual(0, Volatile.Read(ref runs));
