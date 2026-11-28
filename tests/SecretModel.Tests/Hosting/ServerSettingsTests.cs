@@ -50,6 +50,7 @@ public sealed class ServerSettingsTests
         Assert.IsFalse(loaded.Authority.HasPrivateKey);
         Assert.AreEqual(TestCertificates.Sha256Thumbprint(TestPki.Authority), TestCertificates.Sha256Thumbprint(loaded.Authority));
         CollectionAssert.AreEquivalent(TestPki.Allowed.Select(TestCertificates.Sha256Thumbprint).ToList(), loaded.AllowedThumbprints.ToList());
+        Assert.AreEqual(Path.Combine(folder, "models"), loaded.ModelFolder);
     }
 
     [TestMethod]
@@ -87,7 +88,9 @@ public sealed class ServerSettingsTests
     [DataRow("ServerCertificate", "")]
     [DataRow("ClientCertificateAuthority", null)]
     [DataRow("ClientCertificateAuthority", "")]
-    public void Load_RefusesAMissingCertificateSetting(string key, string? value)
+    [DataRow("ModelFolder", null)]
+    [DataRow("ModelFolder", "")]
+    public void Load_RefusesAMissingFileSetting(string key, string? value)
     {
         settings["SecretModel:" + key] = value;
 
@@ -107,6 +110,24 @@ public sealed class ServerSettingsTests
 
         Assert.Contains($"SecretModel:{key} was not found", message);
         StringAssert.EndsWith(message, missing);
+    }
+
+    [TestMethod]
+    public void Load_RefusesAModelFolderThatIsNotThere()
+    {
+        string missing = Path.Combine(folder, "no-such-folder");
+        settings["SecretModel:ModelFolder"] = missing;
+
+        Assert.AreEqual($"The model folder SecretModel:ModelFolder was not found: {missing}", Refused().Message);
+        Assert.IsFalse(Directory.Exists(missing), "The server never creates it.");
+    }
+
+    [TestMethod]
+    public void Load_GivesTheModelFolderAsAFullPath()
+    {
+        settings["SecretModel:ModelFolder"] = ".";
+
+        Assert.AreEqual(Path.GetFullPath("."), Load().ModelFolder);
     }
 
     [TestMethod]

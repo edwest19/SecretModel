@@ -65,7 +65,7 @@ internal static class TestPki
         TestCertificates.CreateClient(Authority, commonName, Now.AddDays(-1), Now.AddDays(5));
 }
 
-/// <summary>Every log entry the server writes, formatted, with its exception if any.</summary>
+/// <summary>Every log entry the server writes, formatted, with its exception if any, and every scope begun.</summary>
 internal sealed class CapturedLogs : ILoggerProvider
 {
     private readonly ConcurrentQueue<string> entries = new();
@@ -82,7 +82,12 @@ internal sealed class CapturedLogs : ILoggerProvider
 
     private sealed class Logger(string category, ConcurrentQueue<string> entries) : ILogger
     {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        // A scope is recorded as an entry of its own, as a provider that shows scopes would print it.
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            entries.Enqueue($"Scope {category}: {state}");
+            return null;
+        }
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -110,13 +115,19 @@ internal sealed class RunningServer : IAsyncDisposable
 
     public Uri Url { get; }
 
+    /// <summary>The server's models folder (SecretModel:ModelFolder).</summary>
+    public string ModelFolder => Path.Combine(folder, "models");
+
+    /// <summary>The server's own services, such as its logger factory.</summary>
+    public IServiceProvider Services => app.Services;
+
     public CapturedLogs Logs { get; }
 
-    /// <summary>A new folder holding server.pfx and ca.cer, and settings that name them.</summary>
+    /// <summary>A new folder holding server.pfx, ca.cer and an empty models folder, and settings that name them.</summary>
     public static (string Folder, Dictionary<string, string?> Settings) Prepare()
     {
         string folder = Path.Combine(Path.GetTempPath(), "SecretModel.Tests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(folder);
+        Directory.CreateDirectory(Path.Combine(folder, "models"));
         File.WriteAllBytes(Path.Combine(folder, "server.pfx"), TestPki.Server.Export(X509ContentType.Pkcs12, TestPki.Password));
         File.WriteAllBytes(Path.Combine(folder, "ca.cer"), TestPki.Authority.Export(X509ContentType.Cert));
         var settings = new Dictionary<string, string?>
@@ -124,6 +135,7 @@ internal sealed class RunningServer : IAsyncDisposable
             ["SecretModel:Url"] = "https://127.0.0.1:0",
             ["SecretModel:ServerCertificate"] = Path.Combine(folder, "server.pfx"),
             ["SecretModel:ClientCertificateAuthority"] = Path.Combine(folder, "ca.cer"),
+            ["SecretModel:ModelFolder"] = Path.Combine(folder, "models"),
         };
         for (int i = 0; i < TestPki.Allowed.Count; i++)
         {

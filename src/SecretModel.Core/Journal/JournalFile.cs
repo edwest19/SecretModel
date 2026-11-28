@@ -1,4 +1,5 @@
-// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-26. AI-generated.
+// Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-26. AI-generated. ReadTransaction
+// added 2026-11-27 for the scoring endpoint (README §3.2).
 
 using System.Globalization;
 using System.Text;
@@ -26,6 +27,9 @@ public static class JournalFile
     private static readonly string[] PropertyNames =
         ["seq", "transaction_token", "customer_token", "card_token", "amount_bin", "merchant_category", "hour", "is_online"];
 
+    // A transaction to score has every property but seq (README §3.2).
+    private static readonly string[] TransactionPropertyNames = PropertyNames[1..];
+
     // .NET 10 accepts a repeated property name by default and keeps the last one (measured).
     private static readonly JsonDocumentOptions Strict = new() { AllowDuplicateProperties = false };
 
@@ -52,7 +56,7 @@ public static class JournalFile
             }
 
             lineNumber++;
-            LineOutcome outcome = ReadLine(line, lineNumber);
+            LineOutcome outcome = ReadLine(line, lineNumber, withSeq: true);
             if (outcome.RejectFile)
             {
                 return JournalReadResult.Rejected(lineNumber);
@@ -71,7 +75,29 @@ public static class JournalFile
         return JournalReadResult.Read(records, quarantined);
     }
 
-    private static LineOutcome ReadLine(ReadOnlySpan<byte> line, int lineNumber)
+    /// <summary>
+    /// Reads one transaction to score, such as a request body (README §3.2): exactly the rules of a
+    /// journal line (docs/formats/journal-v1.md), including the card-number scan, except that there
+    /// are seven properties, without <c>seq</c>. Nothing it returns repeats the content.
+    /// </summary>
+    public static TransactionReadResult ReadTransaction(ReadOnlySpan<byte> json)
+    {
+        LineOutcome outcome = ReadLine(json, lineNumber: 1, withSeq: false);
+        if (outcome.RejectFile)
+        {
+            return TransactionReadResult.LongDigitRun;
+        }
+
+        if (outcome.Record is not { } record)
+        {
+            return TransactionReadResult.Invalid(outcome.Reason);
+        }
+
+        return TransactionReadResult.Read(new TransactionRequest(
+            record.TransactionToken, record.CustomerToken, record.CardToken, record.AmountBin, record.MerchantCategory, record.Hour, record.IsOnline));
+    }
+
+    private static LineOutcome ReadLine(ReadOnlySpan<byte> line, int lineNumber, bool withSeq)
     {
         if (IsBlank(line))
         {
@@ -118,7 +144,7 @@ public static class JournalFile
                 }
             }
 
-            return ReadRecord(root, lineNumber);
+            return ReadRecord(root, lineNumber, withSeq);
         }
     }
 
@@ -282,18 +308,20 @@ public static class JournalFile
         }
     }
 
-    private static LineOutcome ReadRecord(JsonElement root, int lineNumber)
+    private static LineOutcome ReadRecord(JsonElement root, int lineNumber, bool withSeq)
     {
+        string[] names = withSeq ? PropertyNames : TransactionPropertyNames;
         if (root.ValueKind != JsonValueKind.Object)
         {
             return Quarantine(Reason.NotAnObject);
         }
 
-        // The strict parse has already refused repeated names, so eight known names means all eight.
+        // The strict parse has already refused repeated names, so as many known names as there are
+        // properties means all of them.
         int known = 0;
         foreach (JsonProperty property in root.EnumerateObject())
         {
-            if (Array.IndexOf(PropertyNames, property.Name) < 0)
+            if (Array.IndexOf(names, property.Name) < 0)
             {
                 return Quarantine(Reason.UnknownProperty);
             }
@@ -301,12 +329,13 @@ public static class JournalFile
             known++;
         }
 
-        if (known != PropertyNames.Length)
+        if (known != names.Length)
         {
             return Quarantine(Reason.MissingProperty);
         }
 
-        if (!TryReadWholeNumber(root.GetProperty("seq"), MaxSeq, out long seq))
+        long seq = 0;
+        if (withSeq && !TryReadWholeNumber(root.GetProperty("seq"), MaxSeq, out seq))
         {
             return Quarantine(Reason.InvalidSeq);
         }
