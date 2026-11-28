@@ -204,11 +204,6 @@ public static class ServerHost
     // The body, or null when it is longer than MaxBodyBytes. Never more than one byte past the limit is read.
     private static async Task<byte[]?> ReadBodyAsync(HttpRequest request, CancellationToken cancellationToken)
     {
-        if (request.ContentLength > MaxBodyBytes)
-        {
-            return null;
-        }
-
         byte[] buffer = new byte[MaxBodyBytes + 1];
         int length = 0;
         while (length < buffer.Length)

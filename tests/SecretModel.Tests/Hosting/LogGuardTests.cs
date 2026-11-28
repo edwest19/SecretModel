@@ -29,8 +29,9 @@ public sealed class LogGuardTests
         logger.Log(level, "Spaced {Value}.", "4111 1111 1111 1111");
         logger.Log(level, "Full-width {Value}.", "４１１１１１１１１１１１１１１１");
 
+        // The text README §3.1 names.
         Assert.HasCount(3, logs.Entries);
-        Assert.IsTrue(logs.Entries.All(e => e == $"{level} test: {GuardedLoggerProvider.Withheld} "), string.Join("\n", logs.Entries));
+        Assert.IsTrue(logs.Entries.All(e => e == $"{level} test: log entry withheld "), string.Join("\n", logs.Entries));
     }
 
     [TestMethod]

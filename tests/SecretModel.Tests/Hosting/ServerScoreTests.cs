@@ -207,6 +207,36 @@ public sealed class ServerScoreTests
     }
 
     [TestMethod]
+    [TestCategory("SM-PRIV-005")]
+    [DoNotParallelize]
+    public async Task TheConsole_GetsOnlyGuardedEntries()
+    {
+        // The console is process-wide, so this test runs on its own and puts it back afterwards.
+        TextWriter before = Console.Out;
+        using var console = new StringWriter();
+        Console.SetOut(console);
+        try
+        {
+            RunningServer server = await RunningServer.StartAsync();
+            ILogger logger = server.Services.GetRequiredService<ILoggerFactory>().CreateLogger("SecretModel.Tests");
+            logger.LogWarning("Value {Value}.", CardNumber);
+            logger.LogError(new InvalidOperationException(CardNumber), "Failed.");
+
+            // Stopping the server flushes the console.
+            await server.DisposeAsync();
+        }
+        finally
+        {
+            Console.SetOut(before);
+        }
+
+        string written = console.ToString();
+        Assert.Contains(GuardedLoggerProvider.Withheld, written);
+        Assert.Contains("Failed. (System.InvalidOperationException)", written);
+        Assert.DoesNotContain(CardNumber, written);
+    }
+
+    [TestMethod]
     [DataRow(4096, HttpStatusCode.OK)]
     [DataRow(4097, HttpStatusCode.RequestEntityTooLarge)]
     public async Task ABodyOver4096Bytes_Is413(int size, HttpStatusCode expected)
