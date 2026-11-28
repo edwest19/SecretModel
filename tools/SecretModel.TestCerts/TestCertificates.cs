@@ -106,7 +106,8 @@ public static class TestCertificates
     }
 
     // A certificate made in memory holds an ephemeral key, which Windows can't use for TLS; one read
-    // back from PKCS#12 can.
+    // back from PKCS#12 can. Exportable, because on Windows a key read without that flag can't be
+    // written to a .pfx file again (CI on windows-latest: "Key not valid for use in specified state").
     private static X509Certificate2 Reload(X509Certificate2 certificate) =>
-        X509CertificateLoader.LoadPkcs12(certificate.Export(X509ContentType.Pkcs12), null);
+        X509CertificateLoader.LoadPkcs12(certificate.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.Exportable);
 }
