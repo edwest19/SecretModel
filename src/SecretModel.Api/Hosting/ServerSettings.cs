@@ -1,5 +1,5 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the design approved by
-// Edwin West on 2026-11-27 (Task 9, decisions 4, 5 and 8). AI-generated.
+// Edwin West on 2026-11-27 (Task 9, decisions 4, 5 and 8; ModelFolder from the Task 4 answers). AI-generated.
 
 using System.Net;
 using System.Security.Cryptography;
@@ -24,7 +24,12 @@ public sealed class ServerSettingsException(string message) : Exception(message)
 /// in, never read from a file. Every check happens before the server starts.
 /// </summary>
 public sealed record ServerSettings(
-    RunMode Mode, Uri Url, X509Certificate2 ServerCertificate, X509Certificate2 Authority, IReadOnlySet<string> AllowedThumbprints)
+    RunMode Mode,
+    Uri Url,
+    X509Certificate2 ServerCertificate,
+    X509Certificate2 Authority,
+    IReadOnlySet<string> AllowedThumbprints,
+    string ModelFolder)
 {
     public const string Section = "SecretModel";
     public const string PasswordVariable = "SECRETMODEL_CERT_PASSWORD";
@@ -51,7 +56,15 @@ public sealed record ServerSettings(
         Uri url = ParseUrl(section["Url"]);
         X509Certificate2 server = LoadServerCertificate(Required(section, "ServerCertificate"), certificatePassword);
         X509Certificate2 authority = LoadAuthority(Required(section, "ClientCertificateAuthority"));
-        return new ServerSettings(mode, url, server, authority, LoadThumbprints(section.GetSection("AllowedClientThumbprints")));
+        IReadOnlySet<string> thumbprints = LoadThumbprints(section.GetSection("AllowedClientThumbprints"));
+        string modelFolder = Required(section, "ModelFolder");
+        if (!Directory.Exists(modelFolder))
+        {
+            // Never created here: a mistyped path would make every card cold-start without a word.
+            throw new ServerSettingsException($"The model folder SecretModel:ModelFolder was not found: {modelFolder}");
+        }
+
+        return new ServerSettings(mode, url, server, authority, thumbprints, Path.GetFullPath(modelFolder));
     }
 
     private static string Required(IConfigurationSection section, string key) =>

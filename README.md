@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.15 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.16 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -16,8 +16,8 @@ validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
 (§8.1), the Home-mode symbol history store (§9.3), Home-mode journal ingestion
 with its audit log (§8.2), the Azure-mode journal source (§8.3), the Azure-mode history store
-and audit log (§9.2), and the Home-mode server's host and certificate login (§3.1). Not built yet:
-the scoring endpoint and the server's ingestion loop. A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+and audit log (§9.2), the Home-mode server's host and certificate login (§3.1), and its scoring
+endpoint (§3.2). Not built yet: the server's ingestion loop. A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -56,7 +56,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.15
+**Version:** 0.16
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -174,6 +174,7 @@ always runs as `Production`, so no page ever shows exception details.
 | `ServerCertificate` | Path of the server's `.pfx`. Its password comes from the environment variable `SECRETMODEL_CERT_PASSWORD`, never from a file. |
 | `ClientCertificateAuthority` | Path of the `.cer` of the authority that issues the client certificates. |
 | `AllowedClientThumbprints` | The SHA-256 thumbprints (64 hex characters, any case) of the client certificates let in. At least one. |
+| `ModelFolder` | The folder of the card profiles (§9.1). It must already exist: the server never creates it, so a mistyped path stops the server instead of making every card cold-start. |
 
 The committed `appsettings.json` holds no secrets and no paths. The real values go in a JSON file
 outside the repository, named by the environment variable `SECRETMODEL_SETTINGS`; environment
@@ -216,13 +217,70 @@ certificate that doesn't chain to a trusted root ends the connection.) Then, for
    *Well-formed X.509:* the TLS layer parses the certificate before any of these checks, and one
    that doesn't parse ends the handshake, so the server never sees it. There is no separate check,
    because it could not change any answer.
-3. A certificate that fails is logged as one warning with the reason and its SHA-256 thumbprint,
-   never its subject: a CN that breaks the rules may hold a card number.
+3. A certificate that fails is logged as one warning with the reason and the first 12 characters of
+   its SHA-256 thumbprint, never its subject: a CN that breaks the rules may hold a card number.
+   12 characters can't hold 13 digits in a row, so the log guard never withholds the line (about
+   4.4% of full thumbprints would be withheld, by exact count). Approved by Edwin.
 
 **Answers.** `GET /health` is 200 `{"status":"ok"}`, with or without a certificate (SM-OPS-001).
 After login, an unknown path is 404 `{"error":"not_found"}` and a wrong method is 405
-`{"error":"method_not_allowed"}`. No error answer repeats what the client sent (SM-PRIV-004), and
-there is no `Server` header. Logs go to the console; `Microsoft.*` logs only warnings and errors.
+`{"error":"method_not_allowed"}`. Any exception is 500 `{"error":"internal"}`, with no detail. No
+error answer repeats what the client sent (SM-PRIV-004), and there is no `Server` header.
+
+**Logs** go to the console; `Microsoft.*` logs only warnings and errors. Every entry, at every
+level, passes through a guard before it is written (SM-PRIV-005):
+
+- an exception is written as its type name only, because its message can hold request data;
+- an entry whose text then holds 13 or more digits in a row, by the rule of SM-PRIV-002, is written
+  as `log entry withheld`;
+- scopes are dropped, because ASP.NET Core's hold the request path.
+
+The server writes no log entry for a request it answers, only for a refused certificate and for an
+exception.
+
+### 3.2 Scoring endpoint
+
+`POST /v1/score` scores one transaction for the client named by the certificate (§3.1). Design
+approved by Edwin on 2026-11-27.
+
+**Request.** `Content-Type: application/json`, with no parameter or with `charset=utf-8` (any
+case), and a body of at most 4,096 bytes: one JSON object with the seven properties of a journal
+record except `seq` (`transaction_token`, `customer_token`, `card_token`, `amount_bin`,
+`merchant_category`, `hour`, `is_online`), each once, in any order, by exactly the rules of
+`docs/formats/journal-v1.md`. So `seq`, `client_id` or any other property is unknown. The body is
+read by `JournalFile.ReadTransaction`, which applies the journal's checks in the journal's order.
+
+**Answers,** checked in this order:
+
+| Status | Body | When |
+|---|---|---|
+| 415 | `{"error":"unsupported_media_type"}` | Any other `Content-Type`, or none. |
+| 413 | `{"error":"request_too_large"}` | The body is longer than 4,096 bytes, with or without a `Content-Length`. No more than 4,097 bytes are read. |
+| 400 | `{"error":"invalid_request","reason":"PossibleCardNumber"}` | Anything in the body may hold a card number (SM-PRIV-002), checked before any other rule, as in a journal line (SM-PS-004). |
+| 400 | `{"error":"invalid_request","reason":"…"}` | The first journal rule the body breaks, by its name in `docs/formats/journal-v1.md` (`BlankLine`, `NotJson`, `UnknownProperty`, `InvalidHour` and so on). An empty body is `BlankLine`. |
+| 200 | The score, format `docs/formats/score-response-v1.md` | Otherwise. |
+
+**Scoring.** The profile is the one stored for (this client, `customer_token`, `card_token`) in
+`ModelFolder` (§9.1), read on every request (SM-STOR-003). The key always holds the client from the
+certificate, so one client can never reach another's profile, even for the same tokens
+(SM-AUTH-006): it gets a cold start, exactly as for a card it has never trained (SM-PS-004). The
+transaction's symbol (§5) is scored by `FraudScorer` with the default options (§7), read-only
+(SM-SCORE-015). Thresholds have no setting yet. A damaged profile file is 500.
+
+**Answer format** (`docs/formats/score-response-v1.md`, locked with a known answer): nine
+properties in a fixed order, `transaction_token`, `fraud_score`, `verdict`, `confidence`,
+`anomaly_factors`, `window_log_likelihood`, `baseline_tail`, `expected_range` and `viterbi_path`.
+At cold start, `window_log_likelihood`, `baseline_tail` and `expected_range` are `null` and
+`viterbi_path` is `[]`. Numbers are written
+as .NET writes a `double`, which can differ in text from Python (`1` and `5E-05` against `1.0` and
+`5e-05`, measured), so clients compare numbers, not text. Approved by Edwin.
+
+**Latency** (SM-SCORE-010): for a warm card with a 300-transaction history, over real TLS on one
+connection, 200 timed requests after 20 to warm up. Measured in Claude's Linux workspace: median
+1.49 ms, p95 2.01 ms. The test fails at a p95 of 200 ms or more.
+
+**Tests:** `ReadTransactionTests`, `ScoreResponseTests` (the format's known answer),
+`ServerScoreTests` (over real TLS) and `LogGuardTests`.
 
 ---
 
@@ -672,6 +730,15 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.16 (2026-11-27)**
+- Added §3.2, the scoring endpoint `POST /v1/score`, and its answer format
+  `docs/formats/score-response-v1.md`, locked with a known answer. Design approved by Edwin.
+- §3.1: the `ModelFolder` setting; any exception is 500 with no detail; the log guard; a refused
+  certificate's log line names only the first 12 characters of its thumbprint. Approved by Edwin.
+- SM-PS-004's negative cases are tested against the server (the PowerShell harness is still to
+  come). SM-AUTH-006, SM-SCORE-010, SM-PRIV-004 and SM-PRIV-005 are now also tested through the
+  server, over real TLS.
 
 **v0.15 (2026-11-27)**
 - Added §3.1, the Home-mode server: its settings, the test certificates

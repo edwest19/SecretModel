@@ -108,7 +108,7 @@ public sealed class ServerTests
     [DataRow("expired", CertificateRejection.OutsideValidity)]
     [DataRow("not yet valid", CertificateRejection.OutsideValidity)]
     [DataRow("card number name", CertificateRejection.NotAClientId)]
-    public async Task RejectedCertificate_Is403_AndOnlyItsReasonAndThumbprintAreLogged(string name, CertificateRejection reason)
+    public async Task RejectedCertificate_Is403_AndOnlyItsReasonAndThumbprintStartAreLogged(string name, CertificateRejection reason)
     {
         X509Certificate2 certificate = TestPki.Named(name);
         await using RunningServer server = await RunningServer.StartAsync();
@@ -120,8 +120,9 @@ public sealed class ServerTests
         Assert.AreEqual(ServerHost.JsonType, response.Content.Headers.ContentType?.ToString());
         Assert.AreEqual(CertificateNotAccepted, await response.Content.ReadAsStringAsync());
         string logs = server.Logs.All;
-        Assert.Contains($"({reason})", logs);
-        Assert.Contains(TestCertificates.Sha256Thumbprint(certificate), logs);
+        string thumbprint = TestCertificates.Sha256Thumbprint(certificate);
+        Assert.Contains($"({reason}); its SHA-256 thumbprint starts {thumbprint[..12]}.", logs);
+        Assert.DoesNotContain(thumbprint, logs, "Only 12 characters, which can't hold 13 digits in a row.");
         Assert.DoesNotContain(TestPki.CommonNameOf(certificate), logs, "The subject is never logged.");
     }
 
