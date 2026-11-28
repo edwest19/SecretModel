@@ -144,7 +144,7 @@ public sealed class IngestionLoopTests
         var first = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using IngestionLoop loop = Loop(_ => { first.TrySetResult(); return Task.FromResult(None); }, TimeSpan.FromHours(1), out CapturedLogs logs);
         await loop.StartAsync(CancellationToken.None);
-        await first.Task;
+        await first.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         long start = Stopwatch.GetTimestamp();
         await StopAsync(loop);
@@ -165,7 +165,7 @@ public sealed class IngestionLoopTests
             return None;
         }, TimeSpan.FromHours(1), out CapturedLogs logs);
         await loop.StartAsync(CancellationToken.None);
-        await started.Task;
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         long start = Stopwatch.GetTimestamp();
         await StopAsync(loop);
@@ -200,7 +200,7 @@ public sealed class IngestionLoopTests
         }, TimeSpan.FromHours(1), out CapturedLogs logs);
 
         await loop.StartAsync(CancellationToken.None);
-        await done.Task;
+        await done.Task.WaitAsync(TimeSpan.FromSeconds(10));
         await StopAsync(loop);
 
         string[] expected =
