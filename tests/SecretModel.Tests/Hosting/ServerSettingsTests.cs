@@ -51,6 +51,7 @@ public sealed class ServerSettingsTests
         Assert.AreEqual(TestCertificates.Sha256Thumbprint(TestPki.Authority), TestCertificates.Sha256Thumbprint(loaded.Authority));
         CollectionAssert.AreEquivalent(TestPki.Allowed.Select(TestCertificates.Sha256Thumbprint).ToList(), loaded.AllowedThumbprints.ToList());
         Assert.AreEqual(Path.Combine(folder, "models"), loaded.ModelFolder);
+        Assert.AreEqual(Path.Combine(folder, "journal"), loaded.JournalFolder);
     }
 
     [TestMethod]
@@ -90,6 +91,8 @@ public sealed class ServerSettingsTests
     [DataRow("ClientCertificateAuthority", "")]
     [DataRow("ModelFolder", null)]
     [DataRow("ModelFolder", "")]
+    [DataRow("JournalFolder", null)]
+    [DataRow("JournalFolder", "")]
     public void Load_RefusesAMissingFileSetting(string key, string? value)
     {
         settings["SecretModel:" + key] = value;
@@ -120,6 +123,57 @@ public sealed class ServerSettingsTests
 
         Assert.AreEqual($"The model folder SecretModel:ModelFolder was not found: {missing}", Refused().Message);
         Assert.IsFalse(Directory.Exists(missing), "The server never creates it.");
+    }
+
+    [TestMethod]
+    public void Load_RefusesAJournalFolderThatIsNotThere()
+    {
+        string missing = Path.Combine(folder, "no-such-folder");
+        settings["SecretModel:JournalFolder"] = missing;
+
+        Assert.AreEqual($"The journal folder SecretModel:JournalFolder was not found: {missing}", Refused().Message);
+        Assert.IsFalse(Directory.Exists(missing), "The server never creates it.");
+    }
+
+    [TestMethod]
+    [DataRow("models", "models")]
+    [DataRow("models", "models/journal")]
+    [DataRow("journal/models", "journal")]
+    [DataRow("models", "models/./")]
+    [DataRow("journal/models", "journal/")]
+    [DataRow("models/", "models/journal")]
+    public void Load_RefusesJournalAndModelFoldersThatOverlap(string model, string journal)
+    {
+        Directory.CreateDirectory(Path.Combine(folder, model));
+        Directory.CreateDirectory(Path.Combine(folder, journal));
+        settings["SecretModel:ModelFolder"] = Path.Combine(folder, model);
+        settings["SecretModel:JournalFolder"] = Path.Combine(folder, journal);
+
+        Assert.AreEqual(
+            "SecretModel:JournalFolder and SecretModel:ModelFolder must be separate folders, neither inside the other.", Refused().Message);
+    }
+
+    [TestMethod]
+    public void Load_RefusesFoldersThatDifferOnlyInCase()
+    {
+        // One folder on Windows, two on Linux: refused on both, as the safe answer.
+        Directory.CreateDirectory(Path.Combine(folder, "MODELS"));
+        settings["SecretModel:JournalFolder"] = Path.Combine(folder, "MODELS");
+
+        Assert.AreEqual(
+            "SecretModel:JournalFolder and SecretModel:ModelFolder must be separate folders, neither inside the other.", Refused().Message);
+    }
+
+    [TestMethod]
+    public void Load_AcceptsSeparateFolders_EvenWhenOneNameStartsWithTheOther()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "models2"));
+        settings["SecretModel:JournalFolder"] = Path.Combine(folder, "models2");
+
+        ServerSettings loaded = Load();
+
+        Assert.AreEqual(Path.Combine(folder, "models"), loaded.ModelFolder);
+        Assert.AreEqual(Path.Combine(folder, "models2"), loaded.JournalFolder);
     }
 
     [TestMethod]

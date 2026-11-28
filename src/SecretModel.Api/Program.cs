@@ -41,5 +41,15 @@ catch (ServerSettingsException e)
 
 app.Lifetime.ApplicationStarted.Register(() =>
     app.Logger.LogInformation("SecretModel is running in Home mode on {Addresses}. Press Ctrl+C to stop.", string.Join(", ", app.Urls)));
-await app.RunAsync();
+try
+{
+    await app.RunAsync();
+}
+catch (IOException e)
+{
+    // Such as an address another program is using. The message names the address, nothing more.
+    Console.Error.WriteLine($"The server could not start: {e.Message}");
+    return 1;
+}
+
 return 0;

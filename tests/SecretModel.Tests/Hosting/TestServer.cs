@@ -118,16 +118,20 @@ internal sealed class RunningServer : IAsyncDisposable
     /// <summary>The server's models folder (SecretModel:ModelFolder).</summary>
     public string ModelFolder => Path.Combine(folder, "models");
 
+    /// <summary>The server's journal folder (SecretModel:JournalFolder).</summary>
+    public string JournalFolder => Path.Combine(folder, "journal");
+
     /// <summary>The server's own services, such as its logger factory.</summary>
     public IServiceProvider Services => app.Services;
 
     public CapturedLogs Logs { get; }
 
-    /// <summary>A new folder holding server.pfx, ca.cer and an empty models folder, and settings that name them.</summary>
+    /// <summary>A new folder holding server.pfx, ca.cer and empty models and journal folders, and settings that name them.</summary>
     public static (string Folder, Dictionary<string, string?> Settings) Prepare()
     {
         string folder = Path.Combine(Path.GetTempPath(), "SecretModel.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(Path.Combine(folder, "models"));
+        Directory.CreateDirectory(Path.Combine(folder, "journal"));
         File.WriteAllBytes(Path.Combine(folder, "server.pfx"), TestPki.Server.Export(X509ContentType.Pkcs12, TestPki.Password));
         File.WriteAllBytes(Path.Combine(folder, "ca.cer"), TestPki.Authority.Export(X509ContentType.Cert));
         var settings = new Dictionary<string, string?>
@@ -136,6 +140,7 @@ internal sealed class RunningServer : IAsyncDisposable
             ["SecretModel:ServerCertificate"] = Path.Combine(folder, "server.pfx"),
             ["SecretModel:ClientCertificateAuthority"] = Path.Combine(folder, "ca.cer"),
             ["SecretModel:ModelFolder"] = Path.Combine(folder, "models"),
+            ["SecretModel:JournalFolder"] = Path.Combine(folder, "journal"),
         };
         for (int i = 0; i < TestPki.Allowed.Count; i++)
         {
@@ -153,12 +158,13 @@ internal sealed class RunningServer : IAsyncDisposable
 
     public const string ThrownMessage = "synthetic failure: details that stay on the server";
 
-    public static async Task<RunningServer> StartAsync(Action<string, Dictionary<string, string?>>? change = null, string password = TestPki.Password)
+    public static async Task<RunningServer> StartAsync(
+        Action<string, Dictionary<string, string?>>? change = null, string password = TestPki.Password, TimeSpan? ingestionInterval = null)
     {
         (string folder, Dictionary<string, string?> settings) = Prepare();
         change?.Invoke(folder, settings);
         var logs = new CapturedLogs();
-        WebApplication app = ServerHost.Create(Configuration(settings), password, logs: logs);
+        WebApplication app = ServerHost.Create(Configuration(settings), password, logs: logs, ingestionInterval: ingestionInterval);
         app.MapGet(ClientPath, (HttpContext context) => context.Features.Get<ClientIdentity>()?.ClientId ?? "(none)");
         app.MapGet(ThrowPath, string () => throw new InvalidOperationException(ThrownMessage));
         await app.StartAsync();

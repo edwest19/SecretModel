@@ -1,4 +1,4 @@
-<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.16 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
+<!-- Written by Claude (Anthropic) for SecretModel. v0.1 drafted 2026-09-13; v0.2 to v0.17 by Claude Opus 5.5, 2026-11-25 to 2026-11-27. AI-generated. -->
 
 # SecretModel
 
@@ -16,8 +16,8 @@ validation and the identifier check (SM-PRIV-001, -002, -006), the HMM core (§6
 (§7), the profile file, the Home-mode and Azure Blob model stores (§9), the journal file reader
 (§8.1), the Home-mode symbol history store (§9.3), Home-mode journal ingestion
 with its audit log (§8.2), the Azure-mode journal source (§8.3), the Azure-mode history store
-and audit log (§9.2), the Home-mode server's host and certificate login (§3.1), and its scoring
-endpoint (§3.2). Not built yet: the server's ingestion loop. A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
+and audit log (§9.2), and the Home-mode server: its host and certificate login (§3.1), its scoring
+endpoint (§3.2) and its ingestion loop (§3.3). A requirement counts as met only when its test has been seen passing *and* seen failing (§12).
 
 **This README is the specification.** It changes in the same pull request as the behavior it
 describes.
@@ -56,7 +56,7 @@ tests also need Azurite, which CI starts (§9.2).
 
 # Requirements Specification
 
-**Version:** 0.16
+**Version:** 0.17
 **Date:** 2026-11-27
 **Prior art:** Python prototype by Meta AI in consultation with edwest19, kept unmodified in
 `reference/python`. This C# work is new and attributed to Claude.
@@ -174,7 +174,8 @@ always runs as `Production`, so no page ever shows exception details.
 | `ServerCertificate` | Path of the server's `.pfx`. Its password comes from the environment variable `SECRETMODEL_CERT_PASSWORD`, never from a file. |
 | `ClientCertificateAuthority` | Path of the `.cer` of the authority that issues the client certificates. |
 | `AllowedClientThumbprints` | The SHA-256 thumbprints (64 hex characters, any case) of the client certificates let in. At least one. |
-| `ModelFolder` | The folder of the card profiles (§9.1). It must already exist: the server never creates it, so a mistyped path stops the server instead of making every card cold-start. |
+| `ModelFolder` | The folder of the card profiles, histories and audit logs (§9.1, §9.3, §8.2). It must already exist: the server never creates it, so a mistyped path stops the server instead of making every card cold-start. |
+| `JournalFolder` | The journal root, with one folder per client (§8.2). It must already exist, and it and `ModelFolder` must be separate folders, neither inside the other: the model root holds a folder per client hash, which could pass for a client folder. |
 
 The committed `appsettings.json` holds no secrets and no paths. The real values go in a JSON file
 outside the repository, named by the environment variable `SECRETMODEL_SETTINGS`; environment
@@ -281,6 +282,31 @@ connection, 200 timed requests after 20 to warm up. Measured in Claude's Linux w
 
 **Tests:** `ReadTransactionTests`, `ScoreResponseTests` (the format's known answer),
 `ServerScoreTests` (over real TLS) and `LogGuardTests`.
+
+### 3.3 Ingestion in the server
+
+The server runs journal ingestion (§8.2) itself, from `JournalFolder` into `ModelFolder`. Design
+approved by Edwin on 2026-11-27.
+
+- **When:** one run once the server has started, that is once it is listening on its address, then
+  another each time 5 minutes have passed since the last run ended. Each run is waited for before the next wait begins, so only one run ever goes at
+  a time (§8.2). The wait has no setting.
+- **While it runs:** the server answers as usual. A card is scored with whatever profile is stored
+  when its request arrives.
+- **Log:** one line per file handled, naming the file and the client, with the outcome and the
+  counts (`archived`, kept for the next run, rejected, or a bad name). A rejected file's line says
+  to delete it by hand. A bad name is never logged. Nothing else is logged for a run with no files.
+- **Errors:** a run that stops with an error (for example, a linked `archive/` folder) is logged as
+  one error line, by the error's type only (§3.1), and the next run tries again.
+- **Stopping:** Ctrl+C ends the wait at once, and ends a run at its next step. A run stopped part
+  way through a file is finished by the next one, exactly as after a failed save (§8.2).
+- **Two servers:** a second server on an address already in use prints one line (`The server could
+  not start: …`), exits with code 1 and never touches the folders, because ingestion waits until the
+  server is listening. Measured: before that wait was added, such a server ingested a file and then
+  crashed. Two servers on *different* addresses sharing the same folders would both run ingestion;
+  that is not tested, and shouldn't be done.
+
+**Tests:** `IngestionLoopTests` and `ServerIngestionTests` (over real TLS).
 
 ---
 
@@ -518,7 +544,7 @@ works against `IJournalSource`; in Home mode that is `FolderJournalSource`.
   cards trained or failed, with each quarantined line's number and reason. Never transaction content.
   In Azure mode the same bytes are kept in a blob (§9.2).
 - **Azure mode:** the same rules, with the journal source of §8.3.
-- **Not yet:** running ingestion from the server (Task 9).
+- **In the server:** at startup and every 5 minutes (§3.3).
 
 **Tests:** `JournalIngestorTests`, `FolderJournalSourceTests`, `JournalNamesTests`, `AuditFileTests`
 (including the audit format's byte-for-byte known answer) and `FileAuditLogTests`.
@@ -730,6 +756,12 @@ stores and checks that every stored byte is the same.
 ---
 
 ## 15. Revision history
+
+**v0.17 (2026-11-27)**
+- Added §3.3: the server runs ingestion once it is listening and every 5 minutes, one run at a
+  time, one log line per file, errors by type only. A server that can't take its address says so in
+  one line and exits 1. The new `JournalFolder` setting must be separate from
+  `ModelFolder`. Design approved by Edwin.
 
 **v0.16 (2026-11-27)**
 - Added §3.2, the scoring endpoint `POST /v1/score`, and its answer format

@@ -1,5 +1,5 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the design approved by
-// Edwin West on 2026-11-27 (Task 9, decisions 4, 5 and 8; ModelFolder from the Task 4 answers). AI-generated.
+// Edwin West on 2026-11-27 (Task 9, decisions 4, 5, 6 and 8; ModelFolder from the Task 4 answers). AI-generated.
 
 using System.Net;
 using System.Security.Cryptography;
@@ -29,7 +29,8 @@ public sealed record ServerSettings(
     X509Certificate2 ServerCertificate,
     X509Certificate2 Authority,
     IReadOnlySet<string> AllowedThumbprints,
-    string ModelFolder)
+    string ModelFolder,
+    string JournalFolder)
 {
     public const string Section = "SecretModel";
     public const string PasswordVariable = "SECRETMODEL_CERT_PASSWORD";
@@ -57,14 +58,19 @@ public sealed record ServerSettings(
         X509Certificate2 server = LoadServerCertificate(Required(section, "ServerCertificate"), certificatePassword);
         X509Certificate2 authority = LoadAuthority(Required(section, "ClientCertificateAuthority"));
         IReadOnlySet<string> thumbprints = LoadThumbprints(section.GetSection("AllowedClientThumbprints"));
-        string modelFolder = Required(section, "ModelFolder");
-        if (!Directory.Exists(modelFolder))
+
+        // Neither folder is ever created here: a mistyped path would make every card cold-start, or
+        // leave every journal file waiting, without a word.
+        string modelFolder = ExistingFolder(section, "ModelFolder", "model folder");
+        string journalFolder = ExistingFolder(section, "JournalFolder", "journal folder");
+        if (Inside(modelFolder, journalFolder) || Inside(journalFolder, modelFolder))
         {
-            // Never created here: a mistyped path would make every card cold-start without a word.
-            throw new ServerSettingsException($"The model folder SecretModel:ModelFolder was not found: {modelFolder}");
+            // The model root holds a folder per client hash, which can look like a client folder, with
+            // the audit log in it (README §3.3).
+            throw new ServerSettingsException("SecretModel:JournalFolder and SecretModel:ModelFolder must be separate folders, neither inside the other.");
         }
 
-        return new ServerSettings(mode, url, server, authority, thumbprints, Path.GetFullPath(modelFolder));
+        return new ServerSettings(mode, url, server, authority, thumbprints, modelFolder, journalFolder);
     }
 
     private static string Required(IConfigurationSection section, string key) =>
@@ -72,6 +78,22 @@ public sealed record ServerSettings(
             ? value
             : throw new ServerSettingsException(
                 $"SecretModel:{key} is not set. Put it in the settings file named by {SettingsFileVariable} (README §3.1).");
+
+    private static string ExistingFolder(IConfigurationSection section, string key, string name)
+    {
+        string folder = Required(section, key);
+        if (!Directory.Exists(folder))
+        {
+            throw new ServerSettingsException($"The {name} SecretModel:{key} was not found: {folder}");
+        }
+
+        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
+    }
+
+    // True when folder is outer or inside it. Case is ignored, as Windows does.
+    private static bool Inside(string folder, string outer) =>
+        folder.Equals(outer, StringComparison.OrdinalIgnoreCase)
+        || folder.StartsWith(outer + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 
     private static Uri ParseUrl(string? value)
     {

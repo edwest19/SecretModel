@@ -1,5 +1,5 @@
 // Written by Claude Opus 5.5 (Anthropic) for SecretModel, 2026-11-27, from the design approved by
-// Edwin West on 2026-11-27 (Task 9, decisions 1 to 4, 7 and 9, and the Task 4 answers). AI-generated.
+// Edwin West on 2026-11-27 (Task 9, decisions 1 to 4, 6, 7 and 9, and the Task 4 answers). AI-generated.
 
 using System.Net;
 using System.Security.Cryptography;
@@ -22,7 +22,8 @@ namespace SecretModel.Api.Hosting;
 /// certificate (SM-AUTH-001, SM-OPS-001). Every other request needs a handshake certificate that
 /// passes <see cref="ClientCertificateValidator"/>: none is 401 (SM-AUTH-005), one that fails is 403.
 /// <c>X-ARR-ClientCert</c> is never read (SM-AUTH-009). <c>POST /v1/score</c> scores one transaction
-/// against the client's own profile for the card (README §3.2). Error answers are small JSON bodies
+/// against the client's own profile for the card (README §3.2), and journal files are ingested at
+/// startup and every 5 minutes (README §3.3). Error answers are small JSON bodies
 /// that repeat nothing the client sent (SM-PRIV-004), and every log entry passes through
 /// <see cref="GuardedLoggerProvider"/> (SM-PRIV-005).
 /// </summary>
@@ -45,7 +46,9 @@ public static class ServerHost
     /// <param name="certificatePassword">The server certificate's password, from <see cref="ServerSettings.PasswordVariable"/>.</param>
     /// <param name="time">The clock for certificate validity; the system clock if null.</param>
     /// <param name="logs">Another place to send logs to, for tests.</param>
-    public static WebApplication Create(IConfiguration settings, string? certificatePassword, TimeProvider? time = null, ILoggerProvider? logs = null)
+    /// <param name="ingestionInterval">The wait between ingestion runs; <see cref="IngestionLoop.DefaultInterval"/> if null.</param>
+    public static WebApplication Create(
+        IConfiguration settings, string? certificatePassword, TimeProvider? time = null, ILoggerProvider? logs = null, TimeSpan? ingestionInterval = null)
     {
         ServerSettings loaded = ServerSettings.Load(settings, certificatePassword);
 
@@ -84,7 +87,15 @@ public static class ServerHost
             Listen(kestrel, loaded.Url, https);
         });
         builder.Services.AddSingleton(new ClientCertificateValidator(loaded.Authority, loaded.AllowedThumbprints, time ?? TimeProvider.System));
-        builder.Services.AddSingleton<IModelStore>(new FileModelStore(loaded.ModelFolder));
+        // Profiles, histories and the audit log all live under the model folder (README §9).
+        var profiles = new FileModelStore(loaded.ModelFolder);
+        builder.Services.AddSingleton<IModelStore>(profiles);
+        var ingestor = new JournalIngestor(
+            new FolderJournalSource(loaded.JournalFolder), new FileHistoryStore(loaded.ModelFolder), profiles, new FileAuditLog(loaded.ModelFolder), Options);
+        builder.Services.AddHostedService(services =>
+            new IngestionLoop(
+                ingestor.RunAsync, ingestionInterval ?? IngestionLoop.DefaultInterval,
+                services.GetRequiredService<IHostApplicationLifetime>(), services.GetRequiredService<ILogger<IngestionLoop>>()));
 
         WebApplication app = builder.Build();
 
