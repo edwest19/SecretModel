@@ -107,8 +107,10 @@ public sealed class ReadTransactionTests
         AssertReason(expected, body);
 
     [TestMethod]
-    public void ReadTransaction_InvalidUtf8_IsInvalidText() =>
-        AssertReason(Reason.InvalidText, [.. Encoding.UTF8.GetBytes("{\"hour\":\""), 0xFF, .. Encoding.UTF8.GetBytes("\"}")]);
+    [DataRow("{\"hour\":\"", "\"}")]
+    [DataRow("{\"hour\":", "}")]
+    public void ReadTransaction_InvalidUtf8_IsInvalidText(string before, string after) =>
+        AssertReason(Reason.InvalidText, [.. Encoding.UTF8.GetBytes(before), 0xFF, .. Encoding.UTF8.GetBytes(after)]);
 
     [TestMethod]
     public void ReadTransaction_AByteOrderMark_IsNotJson() =>

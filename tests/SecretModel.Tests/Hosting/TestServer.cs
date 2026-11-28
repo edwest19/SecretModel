@@ -65,7 +65,7 @@ internal static class TestPki
         TestCertificates.CreateClient(Authority, commonName, Now.AddDays(-1), Now.AddDays(5));
 }
 
-/// <summary>Every log entry the server writes, formatted, with its exception if any.</summary>
+/// <summary>Every log entry the server writes, formatted, with its exception if any, and every scope begun.</summary>
 internal sealed class CapturedLogs : ILoggerProvider
 {
     private readonly ConcurrentQueue<string> entries = new();
@@ -82,7 +82,12 @@ internal sealed class CapturedLogs : ILoggerProvider
 
     private sealed class Logger(string category, ConcurrentQueue<string> entries) : ILogger
     {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        // A scope is recorded as an entry of its own, as a provider that shows scopes would print it.
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            entries.Enqueue($"Scope {category}: {state}");
+            return null;
+        }
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
