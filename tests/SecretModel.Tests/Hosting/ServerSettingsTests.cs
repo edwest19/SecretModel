@@ -140,12 +140,25 @@ public sealed class ServerSettingsTests
     [DataRow("models", "models/journal")]
     [DataRow("journal/models", "journal")]
     [DataRow("models", "models/./")]
+    [DataRow("journal/models", "journal/")]
+    [DataRow("models/", "models/journal")]
     public void Load_RefusesJournalAndModelFoldersThatOverlap(string model, string journal)
     {
         Directory.CreateDirectory(Path.Combine(folder, model));
         Directory.CreateDirectory(Path.Combine(folder, journal));
         settings["SecretModel:ModelFolder"] = Path.Combine(folder, model);
         settings["SecretModel:JournalFolder"] = Path.Combine(folder, journal);
+
+        Assert.AreEqual(
+            "SecretModel:JournalFolder and SecretModel:ModelFolder must be separate folders, neither inside the other.", Refused().Message);
+    }
+
+    [TestMethod]
+    public void Load_RefusesFoldersThatDifferOnlyInCase()
+    {
+        // One folder on Windows, two on Linux: refused on both, as the safe answer.
+        Directory.CreateDirectory(Path.Combine(folder, "MODELS"));
+        settings["SecretModel:JournalFolder"] = Path.Combine(folder, "MODELS");
 
         Assert.AreEqual(
             "SecretModel:JournalFolder and SecretModel:ModelFolder must be separate folders, neither inside the other.", Refused().Message);

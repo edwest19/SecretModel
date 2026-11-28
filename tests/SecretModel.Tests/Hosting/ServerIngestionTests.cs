@@ -39,10 +39,11 @@ public sealed class ServerIngestionTests
     public async Task FilesWaitingAtStart_AreIngested_ThenTheCardIsScoredWarm()
     {
         var shopper = new SyntheticShopper(61);
+        IEnumerable<Purchase> history = Purchases(shopper, 300);
         RunningServer server = await RunningServer.StartAsync((folder, _) =>
         {
             string client = Directory.CreateDirectory(Path.Combine(folder, "journal", "client-a")).FullName;
-            File.WriteAllText(Path.Combine(client, "day1.jsonl"), Journal(Purchases(shopper, 300)));
+            File.WriteAllText(Path.Combine(client, "day1.jsonl"), Journal(history));
             File.WriteAllText(Path.Combine(client, "day2.jsonl"), Journal(Purchases(shopper, 1)).Replace(Card, CardNumber, StringComparison.Ordinal));
             File.WriteAllText(Path.Combine(client, CardNumber + ".jsonl"), Journal(Purchases(shopper, 1)));
         });
@@ -52,9 +53,15 @@ public sealed class ServerIngestionTests
             await WaitForAsync(() => File.Exists(Path.Combine(clientFolder, "archive", "day1.jsonl"))
                 && Directory.GetFiles(Path.Combine(clientFolder, "quarantine")).Length == 2);
 
+            // Trained with the options scoring uses, on the file's 300 transactions in seq order.
+            StoredProfile stored = (await new FileModelStore(server.ModelFolder).GetAsync(new ProfileKey("client-a", Cus, Card)))!;
+            CollectionAssert.AreEqual(
+                CardProfileFile.Write(CardProfile.Build([.. history.Select(p => p.Symbol)], new ScoringOptions())), CardProfileFile.Write(stored.Profile));
+
             Purchase purchase = shopper.Anomaly(AnomalyKind.Takeover);
             await AssertScoredWarmAsync(server, purchase);
             Assert.HasCount(3, File.ReadAllLines(new FileAuditLog(server.ModelFolder).PathFor("client-a")));
+            Assert.IsTrue(File.Exists(new FileHistoryStore(server.ModelFolder).PathFor(new ProfileKey("client-a", Cus, Card))), "The history is under the model folder.");
         }
         finally
         {

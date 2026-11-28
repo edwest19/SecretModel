@@ -31,7 +31,7 @@ public sealed class IngestionLoopTests
         await loop.StartAsync(CancellationToken.None);
 
         Assert.AreSame(first.Task, await Task.WhenAny(first.Task, Task.Delay(TimeSpan.FromSeconds(10))), "No run started.");
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
     }
 
     [TestMethod]
@@ -53,7 +53,7 @@ public sealed class IngestionLoopTests
         await serverStarted.CancelAsync();
 
         Assert.AreSame(first.Task, await Task.WhenAny(first.Task, Task.Delay(TimeSpan.FromSeconds(10))), "No run after the server started.");
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public sealed class IngestionLoopTests
         await loop.StartAsync(CancellationToken.None);
 
         long start = Stopwatch.GetTimestamp();
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         // Ended, either way. Measured on .NET 10.0.15: a service stopped right after it starts is
         // usually canceled before ExecuteAsync is ever entered (196 times in 200).
@@ -102,7 +102,7 @@ public sealed class IngestionLoopTests
 
         await loop.StartAsync(CancellationToken.None);
         Assert.AreSame(enough.Task, await Task.WhenAny(enough.Task, Task.Delay(TimeSpan.FromSeconds(20))), "Three runs didn't happen.");
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         Assert.AreEqual(1, most, "Two runs went at once.");
         (long Start, long End)[] runs = [.. spans];
@@ -131,7 +131,7 @@ public sealed class IngestionLoopTests
 
         await loop.StartAsync(CancellationToken.None);
         Assert.AreSame(second.Task, await Task.WhenAny(second.Task, Task.Delay(TimeSpan.FromSeconds(10))), "No second run.");
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         Assert.Contains(
             "Error SecretModel.Api.Hosting.IngestionLoop: A journal ingestion run stopped; the next run will try again. System.IO.IOException",
@@ -147,7 +147,7 @@ public sealed class IngestionLoopTests
         await first.Task;
 
         long start = Stopwatch.GetTimestamp();
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         Assert.IsLessThan(5.0, Stopwatch.GetElapsedTime(start).TotalSeconds);
         Assert.IsTrue(loop.ExecuteTask!.IsCompletedSuccessfully);
@@ -168,7 +168,7 @@ public sealed class IngestionLoopTests
         await started.Task;
 
         long start = Stopwatch.GetTimestamp();
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         Assert.IsLessThan(5.0, Stopwatch.GetElapsedTime(start).TotalSeconds);
         Assert.IsTrue(loop.ExecuteTask!.IsCompletedSuccessfully);
@@ -201,7 +201,7 @@ public sealed class IngestionLoopTests
 
         await loop.StartAsync(CancellationToken.None);
         await done.Task;
-        await loop.StopAsync(CancellationToken.None);
+        await StopAsync(loop);
 
         string[] expected =
         [
@@ -215,6 +215,14 @@ public sealed class IngestionLoopTests
     }
 
     private static IReadOnlyList<IngestedFile> None => [];
+
+    // A stop that would otherwise wait for ever gives up after 10 seconds, so a broken loop fails
+    // its test instead of hanging the run.
+    private static async Task StopAsync(IngestionLoop loop)
+    {
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await loop.StopAsync(limit.Token);
+    }
 
     // serverStarted: when the server has started; already, if not given.
     private static IngestionLoop Loop(
